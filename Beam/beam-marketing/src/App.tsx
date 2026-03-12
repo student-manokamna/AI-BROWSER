@@ -3,24 +3,75 @@ import { BrowserDemo } from './components/BrowserDemo'
 import './App.css'
 
 function App() {
-  const [activeDemo, setActiveDemo] = useState<'login' | 'extract' | 'form' | 'mental-wellness' | 'misinformation'>('login')
+  const [activeDemo, setActiveDemo] = useState<'mental-wellness' | 'misinformation' | 'login' | 'extract' | 'form'>('mental-wellness')
 
   return (
     <div className="app">
-      {/* Hero Section */}
+      {/* Navigation */}
+      <nav className="navbar">
+        <div className="nav-container">
+          <div className="nav-brand">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+            </svg>
+            <span>Beam Browser</span>
+          </div>
+          <div className="nav-links">
+            <a href="#demos">Demos</a>
+            <a href="#features">Features</a>
+            <a href="#download">Download</a>
+          </div>
+        </div>
+      </nav>
+
+      {/* Hero Section with Problem Statements */}
       <section className="hero">
+        <div className="hero-background">
+          <div className="hero-gradient"></div>
+        </div>
         <div className="hero-content">
           <div className="hero-badge">
-            <span>●</span> AI-Powered Browser
+            <span>●</span> AI-Powered Innovation
           </div>
-          <h1>Browse Smarter with Beam</h1>
-          <p>
-            The world's first AI-integrated browser that automates your web tasks. 
-            From login automation to data extraction, let AI do the work while you watch.
+          <h1>Building Solutions for Tomorrow's Challenges</h1>
+          <p className="hero-subtitle">
+            Leveraging Google Cloud's generative AI to create innovative solutions that address 
+            real-world problems in mental wellness and digital information integrity.
           </p>
+          
+          <div className="problem-statements">
+            <div className="problem-card">
+              <div className="problem-icon mental-wellness">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+              </div>
+              <h3>Youth Mental Wellness</h3>
+              <p>
+                Empowering Indian youth with confidential, empathetic AI support 
+                to overcome stigma and access mental health resources.
+              </p>
+            </div>
+            
+            <div className="problem-card">
+              <div className="problem-icon misinformation">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <path d="M12 16v-4"/>
+                  <path d="M12 8h.01"/>
+                </svg>
+              </div>
+              <h3>Combating Misinformation</h3>
+              <p>
+                Building AI-powered tools to detect fake news and educate users 
+                on identifying credible, trustworthy content.
+              </p>
+            </div>
+          </div>
+          
           <div className="hero-buttons">
             <a 
-              href="https://github.com/tanubhavjuneja/Beam/releases" 
+              href="https://github.com/student-manokamna/AI-BROWSER/releases" 
               className="btn btn-primary"
               target="_blank"
               rel="noopener noreferrer"
@@ -33,7 +84,7 @@ function App() {
               Download for Windows
             </a>
             <a 
-              href="https://github.com/tanubhavjuneja/Beam" 
+              href="https://github.com/student-manokamna/AI-BROWSER" 
               className="btn btn-secondary"
               target="_blank"
               rel="noopener noreferrer"
@@ -47,13 +98,62 @@ function App() {
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="features">
+      {/* Demo Section */}
+      <section className="demo-section" id="demos">
         <div className="container">
-          <h2 style={{ textAlign: 'center' }}>Powered by Intelligence</h2>
-          <p style={{ textAlign: 'center', maxWidth: '600px', margin: '1rem auto 0' }}>
-            Beam combines a modern browsing experience with powerful AI capabilities
-          </p>
+          <div className="section-header">
+            <h2>See the Innovation in Action</h2>
+            <p>
+              Watch our AI-powered solutions tackle real-world challenges with empathy and precision.
+            </p>
+          </div>
+          
+          <div className="demo-tabs">
+            <button 
+              className={`demo-tab ${activeDemo === 'mental-wellness' ? 'active' : ''}`}
+              onClick={() => setActiveDemo('mental-wellness')}
+            >
+              💭 Mental Wellness
+            </button>
+            <button 
+              className={`demo-tab ${activeDemo === 'misinformation' ? 'active' : ''}`}
+              onClick={() => setActiveDemo('misinformation')}
+            >
+              🔍 Fact Checking
+            </button>
+            <button 
+              className={`demo-tab ${activeDemo === 'login' ? 'active' : ''}`}
+              onClick={() => setActiveDemo('login')}
+            >
+              🚀 Login Automation
+            </button>
+            <button 
+              className={`demo-tab ${activeDemo === 'extract' ? 'active' : ''}`}
+              onClick={() => setActiveDemo('extract')}
+            >
+              📊 Data Extraction
+            </button>
+            <button 
+              className={`demo-tab ${activeDemo === 'form' ? 'active' : ''}`}
+              onClick={() => setActiveDemo('form')}
+            >
+              📝 Form Filling
+            </button>
+          </div>
+          
+          <BrowserDemo type={activeDemo} />
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section className="features" id="features">
+        <div className="container">
+          <div className="section-header">
+            <h2>Powered by Intelligence</h2>
+            <p>
+              Beam combines a modern browsing experience with powerful AI capabilities
+            </p>
+          </div>
           
           <div className="features-grid">
             <div className="feature-card">
@@ -142,60 +242,14 @@ function App() {
         </div>
       </section>
 
-      {/* Demo Section */}
-      <section className="demo-section">
-        <div className="demo-header">
-          <h2>See It In Action</h2>
-          <p>
-            Watch how Beam's AI agent handles complex tasks automatically. 
-            Just describe what you want, and let Beam do the rest.
-          </p>
-        </div>
-        
-        <div className="demo-tabs">
-          <button 
-            className={`demo-tab ${activeDemo === 'login' ? 'active' : ''}`}
-            onClick={() => setActiveDemo('login')}
-          >
-            Login Automation
-          </button>
-          <button 
-            className={`demo-tab ${activeDemo === 'extract' ? 'active' : ''}`}
-            onClick={() => setActiveDemo('extract')}
-          >
-            Data Extraction
-          </button>
-          <button 
-            className={`demo-tab ${activeDemo === 'form' ? 'active' : ''}`}
-            onClick={() => setActiveDemo('form')}
-          >
-            Form Filling
-          </button>
-          <button 
-            className={`demo-tab ${activeDemo === 'mental-wellness' ? 'active' : ''}`}
-            onClick={() => setActiveDemo('mental-wellness')}
-          >
-            Mental Wellness
-          </button>
-          <button 
-            className={`demo-tab ${activeDemo === 'misinformation' ? 'active' : ''}`}
-            onClick={() => setActiveDemo('misinformation')}
-          >
-            Fact Checking
-          </button>
-        </div>
-        
-        <BrowserDemo type={activeDemo} />
-      </section>
-
       {/* Download Section */}
-      <section className="download-section">
+      <section className="download-section" id="download">
         <div className="download-content">
           <h2>Ready to Experience the Future?</h2>
           <p>Download Beam Browser now and start browsing smarter.</p>
           <div className="download-buttons">
             <a 
-              href="https://github.com/tanubhavjuneja/Beam/releases" 
+              href="https://github.com/student-manokamna/AI-BROWSER/releases" 
               className="btn btn-primary"
               target="_blank"
               rel="noopener noreferrer"
@@ -208,7 +262,7 @@ function App() {
               Download Beam Browser
             </a>
             <a 
-              href="https://github.com/tanubhavjuneja/Beam" 
+              href="https://github.com/student-manokamna/AI-BROWSER" 
               className="btn btn-secondary"
               target="_blank"
               rel="noopener noreferrer"
@@ -227,9 +281,9 @@ function App() {
         <div className="container">
           <div className="footer-content">
             <div className="footer-links">
-              <a href="https://github.com/tanubhavjuneja/Beam" target="_blank" rel="noopener noreferrer">GitHub</a>
-              <a href="https://github.com/tanubhavjuneja/Beam/releases" target="_blank" rel="noopener noreferrer">Downloads</a>
-              <a href="https://github.com/tanubhavjuneja/Beam/issues" target="_blank" rel="noopener noreferrer">Report Issues</a>
+              <a href="https://github.com/student-manokamna/AI-BROWSER" target="_blank" rel="noopener noreferrer">GitHub</a>
+              <a href="https://github.com/student-manokamna/AI-BROWSER/releases" target="_blank" rel="noopener noreferrer">Downloads</a>
+              <a href="https://github.com/student-manokamna/AI-BROWSER/issues" target="_blank" rel="noopener noreferrer">Report Issues</a>
             </div>
             
             <div className="footer-team">
