@@ -20,7 +20,7 @@ interface DemoConfig {
   }
 }
 
-const demoConfigs: Record<string, DemoConfig> = {
+const demoConfigs: Record<'login' | 'extract' | 'form' | 'mental-wellness' | 'misinformation', DemoConfig> = {
   login: {
     title: 'Login Automation',
     prompt: 'Login to my Gmail account',
@@ -65,10 +65,40 @@ const demoConfigs: Record<string, DemoConfig> = {
       title: 'techconf2026.com',
       form: true,
     }
+  },
+  'mental-wellness': {
+    title: 'Mental Wellness Support',
+    prompt: 'Help me with my anxiety about exams',
+    steps: [
+      { id: 1, text: 'Analyzing your message...', status: 'pending' },
+      { id: 2, text: 'Understanding your concerns', status: 'pending' },
+      { id: 3, text: 'Providing empathetic support', status: 'pending' },
+      { id: 4, text: 'Suggesting coping strategies', status: 'pending' },
+      { id: 5, text: 'Connecting with resources', status: 'pending' },
+    ],
+    pageContent: {
+      title: 'mindwell.ai',
+      form: true,
+    }
+  },
+  misinformation: {
+    title: 'Fact Checker',
+    prompt: 'Verify this news about recent policy changes',
+    steps: [
+      { id: 1, text: 'Analyzing the content...', status: 'pending' },
+      { id: 2, text: 'Checking source credibility', status: 'pending' },
+      { id: 3, text: 'Cross-referencing with trusted sources', status: 'pending' },
+      { id: 4, text: 'Identifying misinformation patterns', status: 'pending' },
+      { id: 5, text: 'Providing verified information', status: 'pending' },
+    ],
+    pageContent: {
+      title: 'trustguard.ai',
+      search: true,
+    }
   }
 }
 
-export function BrowserDemo({ type }: { type: 'login' | 'extract' | 'form' }) {
+export function BrowserDemo({ type }: { type: 'login' | 'extract' | 'form' | 'mental-wellness' | 'misinformation' }) {
   const config = demoConfigs[type]
   const [steps, setSteps] = useState<DemoStep[]>(config.steps)
   const [currentStep, setCurrentStep] = useState(0)
@@ -389,6 +419,137 @@ function FakeWebpage({ type, currentStep }: { type: string, currentStep: number 
             
             <button className="fake-btn">
               {isComplete ? '✓ Registered!' : 'Complete Registration'}
+            </button>
+          </div>
+        )}
+
+        {type === 'mental-wellness' && (
+          <div className="fake-form">
+            <h2>💭 MindWell AI</h2>
+            <p style={{ marginBottom: 24, color: '#a1a1aa' }}>How are you feeling today?</p>
+            
+            {/* Chat message - shows at step 1 */}
+            <motion.div 
+              className="fake-chat-bubble"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: currentStep >= 1 ? 1 : 0 }}
+              style={{ 
+                background: currentStep >= 1 ? '#3d3d5d' : '#2d2d3d',
+                marginBottom: 16
+              }}
+            >
+              {currentStep >= 1 ? "I've been feeling really anxious about my upcoming exams..." : ''}
+            </motion.div>
+            
+            {/* AI response - shows at steps 2-4 */}
+            {currentStep >= 2 && (
+              <motion.div 
+                className="fake-chat-bubble ai"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                style={{ 
+                  background: '#2d3d4d',
+                  border: '1px solid #4a6fa5',
+                  marginBottom: 16
+                }}
+              >
+                {currentStep >= 4 ? "I understand. Let's try some breathing exercises. I'm also connecting you with campus counseling resources." : 
+                 currentStep >= 3 ? "That's completely normal. Exam stress affects many students. Let's work through this together." :
+                 "Thank you for sharing. I hear you, and your feelings are valid."}
+              </motion.div>
+            )}
+            
+            {/* Coping strategies - shows at step 4 */}
+            {currentStep >= 4 && (
+              <motion.div 
+                className="fake-strategies"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                style={{ marginTop: 16 }}
+              >
+                <div style={{ 
+                  background: '#2d2d3d', 
+                  padding: 12, 
+                  borderRadius: 8,
+                  fontSize: 14
+                }}>
+                  <strong>📋 Coping Strategies:</strong>
+                  <ul style={{ marginTop: 8, paddingLeft: 20 }}>
+                    <li>Box breathing: 4-4-4-4 pattern</li>
+                    <li>5-4-3-2-1 grounding technique</li>
+                    <li>Break study sessions into 25-min chunks</li>
+                  </ul>
+                </div>
+              </motion.div>
+            )}
+            
+            <button className="fake-btn">
+              {isComplete ? '✓ Support Provided' : 'Chat with AI'}
+            </button>
+          </div>
+        )}
+
+        {type === 'misinformation' && (
+          <div>
+            <h2>🔍 TrustGuard AI</h2>
+            <p style={{ marginBottom: 24, color: '#a1a1aa' }}>
+              {currentStep >= 4 ? 'Analysis Complete' : currentStep >= 2 ? 'Analyzing content...' : 'Ready to verify'}
+            </p>
+            
+            {/* Source content */}
+            <div style={{ 
+              background: '#2d2d3d', 
+              borderRadius: 8, 
+              padding: 16,
+              marginBottom: 16 
+            }}>
+              <p style={{ fontSize: 14, lineHeight: 1.6 }}>
+                "BREAKING: New government policy will increase taxes by 50% starting next month..."
+              </p>
+              <p style={{ fontSize: 12, color: '#a1a1aa', marginTop: 8 }}>
+                Source: Unverified social media post
+              </p>
+            </div>
+            
+            {/* Analysis results */}
+            {currentStep >= 2 && (
+              <motion.div 
+                className="fake-analysis"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                style={{ 
+                  background: '#2d2d3d', 
+                  borderRadius: 8, 
+                  padding: 16 
+                }}
+              >
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12 }}>
+                  <div className={`fake-status ${currentStep >= 4 ? 'misleading' : 'checking'}`}>
+                    {currentStep >= 4 ? '⚠️ Misleading' : '🔍 Checking...'}
+                  </div>
+                </div>
+                
+                {currentStep >= 4 && (
+                  <div style={{ fontSize: 14, lineHeight: 1.6 }}>
+                    <p style={{ marginBottom: 8 }}>
+                      <strong>Red Flags Identified:</strong>
+                    </p>
+                    <ul style={{ paddingLeft: 20, marginBottom: 12 }}>
+                      <li>Unverified source with no official confirmation</li>
+                      <li>Lack of specific policy details</li>
+                      <li>Sensationalized language ("BREAKING")</li>
+                    </ul>
+                    <p>
+                      <strong>Verified Information:</strong> No official policy changes announced. 
+                      Tax changes require parliamentary approval and advance notice.
+                    </p>
+                  </div>
+                )}
+              </motion.div>
+            )}
+            
+            <button className="fake-btn" style={{ marginTop: 16 }}>
+              {isComplete ? '✓ Verified' : 'Checking Sources...'}
             </button>
           </div>
         )}

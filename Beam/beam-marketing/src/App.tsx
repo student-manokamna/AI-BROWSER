@@ -3,7 +3,7 @@ import { BrowserDemo } from './components/BrowserDemo'
 import './App.css'
 
 function App() {
-  const [activeDemo, setActiveDemo] = useState<'login' | 'extract' | 'form'>('login')
+  const [activeDemo, setActiveDemo] = useState<'login' | 'extract' | 'form' | 'mental-wellness' | 'misinformation'>('login')
 
   return (
     <div className="app">
@@ -171,6 +171,18 @@ function App() {
           >
             Form Filling
           </button>
+          <button 
+            className={`demo-tab ${activeDemo === 'mental-wellness' ? 'active' : ''}`}
+            onClick={() => setActiveDemo('mental-wellness')}
+          >
+            Mental Wellness
+          </button>
+          <button 
+            className={`demo-tab ${activeDemo === 'misinformation' ? 'active' : ''}`}
+            onClick={() => setActiveDemo('misinformation')}
+          >
+            Fact Checking
+          </button>
         </div>
         
         <BrowserDemo type={activeDemo} />
@@ -224,9 +236,9 @@ function App() {
               <h4>Development Team</h4>
               <div className="team-list">
                 <span className="team-member">Tanubhav Juneja</span>
-                <span className="team-member">Sneha Gahlot</span>
-                <span className="team-member">Vaishnavy Yadav</span>
-                <span className="team-member">Saurabh Madaan</span>
+                <span className="team-member">Suhani Munjal</span>
+                <span className="team-member">Manokamna</span>
+                <span className="team-member">Aditya Singh</span>
               </div>
             </div>
             
