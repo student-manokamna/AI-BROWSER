@@ -1,0 +1,189 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   TAB BAR — Chrome-style tab strip
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.tabbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4) 0;
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  overflow-x: auto;
+  overflow-y: hidden;
+  flex-shrink: 0;
+  min-height: 44px;
+  scrollbar-width: none;
+  -webkit-app-region: drag;
+}
+
+.tabbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* ─── Individual Tab ──────────────────────────────────────────────────────── */
+
+.tabbar__tab {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-4);
+  min-width: 160px;
+  max-width: 260px;
+  height: 34px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  position: relative;
+  -webkit-app-region: no-drag;
+  margin-right: 2px;
+  border-bottom: none;
+}
+
+.tabbar__tab:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--border-subtle);
+}
+
+.tabbar__tab--active {
+  background: var(--bg-surface);
+  border-color: var(--border-subtle);
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.2);
+  z-index: 2;
+}
+
+.tabbar__tab--active::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--accent-gradient);
+  border-radius: var(--radius-full) var(--radius-full) 0 0;
+}
+
+.tabbar__tab--active::after {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 2px;
+  background: var(--accent-gradient);
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-glow);
+}
+
+/* ─── Tab Favicon ─────────────────────────────────────────────────────────── */
+
+.tabbar__favicon {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  object-fit: contain;
+}
+
+.tabbar__favicon--loading {
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--border-subtle);
+  border-top-color: var(--accent-primary);
+  border-radius: 50%;
+  animation: spin 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  flex-shrink: 0;
+}
+
+.tabbar__favicon--default {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  background: var(--accent-muted);
+  flex-shrink: 0;
+}
+
+/* ─── Tab Title ───────────────────────────────────────────────────────────── */
+
+.tabbar__title {
+  flex: 1;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: all var(--transition-fast);
+}
+
+.tabbar__tab--active .tabbar__title {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+/* ─── Tab Close Button ────────────────────────────────────────────────────── */
+
+.tabbar__close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: none;
+  background: transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: all var(--transition-fast);
+}
+
+.tabbar__tab:hover .tabbar__close {
+  opacity: 1;
+}
+
+.tabbar__close:hover {
+  background: var(--bg-active);
+  color: var(--status-error);
+}
+
+/* ─── Add Tab Button ──────────────────────────────────────────────────────── */
+
+.tabbar__add {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: all var(--transition-base);
+  -webkit-app-region: no-drag;
+  margin-left: var(--space-1);
+}
+
+.tabbar__add:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+  transform: scale(1.05);
+}
+
+.tabbar__add:active {
+  transform: scale(0.95);
+}
+
+.tabbar__add svg {
+  width: 16px;
+  height: 16px;
+  stroke-width: 2.5;
+}

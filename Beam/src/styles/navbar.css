@@ -1,0 +1,215 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   NAVIGATION BAR — Address bar + navigation controls
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.navbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: 0 var(--space-4);
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border-bottom: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+  z-index: var(--z-chrome);
+  height: 48px;
+}
+
+/* ─── Navigation Buttons Island ───────────────────────────────────────────── */
+
+.navbar__nav-group {
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 2px;
+  gap: 1px;
+}
+
+/* ─── Navigation Buttons ──────────────────────────────────────────────────── */
+
+.navbar__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: all var(--transition-base);
+  flex-shrink: 0;
+}
+
+.navbar__btn svg {
+  width: 14px;
+  height: 14px;
+  stroke-width: 2.2;
+}
+
+.navbar__btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-primary);
+  transform: translateY(-1px);
+}
+
+.navbar__btn:active:not(:disabled) {
+  background: rgba(255, 255, 255, 0.12);
+  transform: scale(0.95);
+}
+
+.navbar__btn:disabled {
+  opacity: 0.15;
+  cursor: not-allowed;
+}
+
+/* ─── Address Bar ─────────────────────────────────────────────────────────── */
+
+.navbar__address {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  height: 32px;
+  padding: 0 var(--space-4);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  transition: all var(--transition-base);
+  overflow: hidden;
+  position: relative;
+}
+
+.navbar__address:hover {
+  border-color: var(--border-default);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.navbar__address:focus-within {
+  border-color: var(--accent-primary);
+  background: var(--bg-surface);
+  box-shadow: 0 0 0 3px var(--accent-muted);
+}
+
+.navbar__lock {
+  display: flex;
+  align-items: center;
+  color: var(--status-success);
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+.navbar__lock--insecure {
+  color: var(--text-muted);
+}
+
+.navbar__lock svg {
+  width: 12px;
+  height: 12px;
+}
+
+.navbar__input {
+  flex: 1;
+  border: none;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: var(--font-family);
+  font-size: var(--font-size-sm);
+  color: var(--text-primary);
+  font-weight: 500;
+  min-width: 0;
+  user-select: text;
+}
+
+.navbar__input::placeholder {
+  color: var(--text-muted);
+}
+
+/* ─── Loading Progress ────────────────────────────────────────────────────── */
+
+.navbar__progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: transparent;
+  overflow: hidden;
+  z-index: 2;
+}
+
+.navbar__progress-bar {
+  height: 100%;
+  background: var(--accent-gradient);
+  width: 100%;
+  box-shadow: 0 0 8px var(--accent-muted);
+}
+
+/* ─── Action Buttons (right side) ─────────────────────────────────────────── */
+
+.navbar__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.navbar__action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: all var(--transition-base);
+}
+
+.navbar__action svg {
+  width: 16px;
+  height: 16px;
+  stroke-width: 2;
+}
+
+.navbar__action:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-primary);
+  transform: translateY(-1px);
+}
+
+.navbar__action:active {
+  transform: scale(0.95);
+}
+
+.navbar__action--active {
+  background: var(--accent-muted);
+  color: var(--accent-primary);
+}
+
+.navbar__action--active:hover {
+  background: hsla(250, 85%, 65%, 0.2);
+}
+
+/* Agent button special treatment */
+.navbar__action--agent {
+  background: var(--accent-muted);
+  color: var(--accent-primary);
+}
+
+.navbar__action--agent:hover {
+  background: var(--accent-gradient);
+  color: white;
+  box-shadow: var(--shadow-glow);
+}
+
+.navbar__action--danger:hover {
+  background: hsla(0, 85%, 60%, 0.1);
+  color: var(--status-error);
+}

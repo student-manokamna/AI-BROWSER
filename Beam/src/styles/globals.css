@@ -1,0 +1,294 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   SOVEREIGN BROWSER — DESIGN SYSTEM
+   Premium dark-first design with glassmorphism and micro-animations
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* ─── CSS Custom Properties (Design Tokens) ──────────────────────────────── */
+
+:root {
+  /* Typography - Using more precise weights and letter spacing */
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-size-xs: 11px;
+  --font-size-sm: 12px;
+  --font-size-base: 13px;
+  --font-size-md: 14px;
+  --font-size-lg: 16px;
+  --font-size-xl: 20px;
+  --font-size-2xl: 28px;
+
+  /* Spacing */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+
+  /* Radii - Smoother corners */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --radius-full: 9999px;
+
+  /* Transitions - Using more natural easings */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 400ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Shadows - More layered and soft */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.4);
+  --shadow-glow: 0 0 20px hsla(250, 85%, 65%, 0.3);
+
+  /* Z-index layers */
+  --z-webview: 1;
+  --z-chrome: 10;
+  --z-panel: 20;
+  --z-modal: 30;
+  --z-titlebar: 50;
+}
+
+/* ─── Dark Theme (Default) ────────────────────────────────────────────────── */
+
+[data-theme="dark"],
+:root {
+  /* Surface colors - Richer, deeper blues/purples */
+  --bg-base: hsl(230, 25%, 6%);
+  --bg-elevated: hsl(230, 20%, 9%);
+  --bg-surface: hsl(230, 18%, 12%);
+  --bg-hover: hsl(230, 15%, 16%);
+  --bg-active: hsl(230, 15%, 20%);
+  --bg-input: hsl(230, 25%, 8%);
+
+  /* Border colors - Subtle and sharp */
+  --border-subtle: hsla(230, 15%, 20%, 0.4);
+  --border-default: hsla(230, 15%, 25%, 0.6);
+  --border-strong: hsla(230, 15%, 35%, 0.7);
+  --border-focus: hsl(250, 85%, 65%);
+
+  /* Text colors - Higher contrast for primary, softer for others */
+  --text-primary: hsl(230, 20%, 96%);
+  --text-secondary: hsl(230, 10%, 75%);
+  --text-muted: hsl(230, 5%, 50%);
+  --text-inverse: hsl(230, 25%, 6%);
+
+  /* Accent - Vibrant indigo/violet */
+  --accent-primary: hsl(250, 85%, 65%);
+  --accent-hover: hsl(250, 85%, 72%);
+  --accent-muted: hsla(250, 85%, 65%, 0.15);
+  --accent-gradient: linear-gradient(135deg, hsl(250, 85%, 65%), hsl(280, 80%, 60%));
+
+  /* Status */
+  --status-success: hsl(155, 75%, 45%);
+  --status-warning: hsl(40, 95%, 55%);
+  --status-error: hsl(0, 85%, 60%);
+  --status-info: hsl(210, 95%, 60%);
+
+  /* Glass effect - Enhanced blur and tint */
+  --glass-bg: hsla(230, 20%, 9%, 0.75);
+  --glass-border: hsla(0, 0%, 100%, 0.08);
+  --glass-blur: 20px;
+
+  /* Specific regions */
+  --titlebar-bg: hsl(230, 25%, 5%);
+  --tabbar-bg: hsl(230, 25%, 7%);
+  --navbar-bg: hsl(230, 20%, 9%);
+  --tab-bg: hsla(230, 15%, 15%, 0.3);
+  --tab-active-bg: hsl(230, 15%, 14%);
+  --tab-hover-bg: hsla(230, 15%, 20%, 0.4);
+}
+
+/* ─── Light Theme ─────────────────────────────────────────────────────────── */
+
+[data-theme="light"] {
+  --bg-base: hsl(220, 20%, 97%);
+  --bg-elevated: hsl(220, 15%, 100%);
+  --bg-surface: hsl(220, 15%, 95%);
+  --bg-hover: hsl(220, 15%, 92%);
+  --bg-active: hsl(220, 15%, 88%);
+  --bg-input: hsl(220, 15%, 100%);
+
+  --border-subtle: hsl(220, 15%, 90%);
+  --border-default: hsl(220, 15%, 85%);
+  --border-strong: hsl(220, 15%, 78%);
+  --border-focus: hsl(238, 80%, 60%);
+
+  --text-primary: hsl(225, 25%, 12%);
+  --text-secondary: hsl(220, 10%, 45%);
+  --text-muted: hsl(220, 10%, 65%);
+  --text-inverse: hsl(220, 20%, 97%);
+
+  --accent-primary: hsl(238, 80%, 58%);
+  --accent-hover: hsl(238, 80%, 52%);
+  --accent-muted: hsla(238, 80%, 58%, 0.1);
+
+  --glass-bg: hsla(220, 20%, 100%, 0.85);
+  --glass-border: hsla(220, 15%, 80%, 0.5);
+
+  --titlebar-bg: hsl(220, 15%, 95%);
+  --tabbar-bg: hsl(220, 15%, 93%);
+  --navbar-bg: hsl(220, 15%, 100%);
+  --tab-bg: hsl(220, 15%, 90%);
+  --tab-active-bg: hsl(220, 15%, 100%);
+  --tab-hover-bg: hsl(220, 15%, 95%);
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.1);
+  --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.08);
+}
+
+/* ─── Global Reset ────────────────────────────────────────────────────────── */
+
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: var(--font-family);
+  font-size: var(--font-size-base);
+  color: var(--text-primary);
+  background: var(--bg-base);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.5;
+}
+
+/* ─── Scrollbar Styling ───────────────────────────────────────────────────── */
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* ─── Focus Styles ────────────────────────────────────────────────────────── */
+
+:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 1px;
+}
+
+/* ─── Selection ───────────────────────────────────────────────────────────── */
+
+::selection {
+  background: var(--accent-muted);
+  color: var(--text-primary);
+}
+
+/* ─── Common Utilities ────────────────────────────────────────────────────── */
+
+.truncate {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ─── App Container ───────────────────────────────────────────────────────── */
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  background: var(--bg-base);
+  overflow: hidden;
+}
+
+/* ─── Animations ──────────────────────────────────────────────────────────── */
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
+}

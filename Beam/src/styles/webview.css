@@ -1,0 +1,44 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   WEBVIEW CONTAINER — Multi-tab web content area
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.webview-container {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  height: 100%;
+  min-height: 0;
+  background: var(--bg-base);
+  z-index: var(--z-webview);
+}
+
+.webview-container__view {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100% !important;
+  height: 100% !important;
+  border: none;
+  background: white;
+
+  /* Use visibility/opacity instead of display:none for webviews 
+     to prevent guest layout and resize bugs */
+  display: flex !important;
+  visibility: hidden;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 0;
+  transition: opacity var(--transition-base);
+}
+
+.webview-container__view--active {
+  visibility: visible !important;
+  pointer-events: auto !important;
+  opacity: 1 !important;
+  z-index: 1;
+}
+
+/* Ensure agent panel stays above webview */
+.agent-panel {
+  z-index: var(--z-panel) !important;
+}

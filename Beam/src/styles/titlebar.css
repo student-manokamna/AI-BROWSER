@@ -1,0 +1,155 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   TITLE BAR — Custom frameless window drag & controls
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.titlebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 40px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border-bottom: 1px solid var(--border-subtle);
+  -webkit-app-region: drag;
+  user-select: none;
+  flex-shrink: 0;
+  z-index: var(--z-titlebar);
+  padding: 0 var(--space-4);
+}
+
+.titlebar--mac {
+  flex-direction: row;
+  justify-content: flex-start;
+  padding-left: 12px;
+}
+
+/* ─── Window Controls ─────────────────────────────────────────────────────── */
+
+.titlebar__controls {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  -webkit-app-region: no-drag;
+}
+
+.titlebar__controls--mac {
+  gap: 8px;
+  width: 60px;
+  /* Space for traffic lights */
+}
+
+.titlebar__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 100%;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: all var(--transition-fast);
+}
+
+.titlebar--mac .titlebar__btn {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  padding: 0;
+}
+
+/* Mac Traffic Light Colors */
+.titlebar--mac .titlebar__btn--close {
+  background: #ff5f56;
+  border: 0.5px solid #e0443e;
+}
+
+.titlebar--mac .titlebar__btn--minimize {
+  background: #ffbd2e;
+  border: 0.5px solid #dea123;
+}
+
+.titlebar--mac .titlebar__btn--maximize {
+  background: #27c93f;
+  border: 0.5px solid #1aab29;
+}
+
+.titlebar--mac .titlebar__btn:hover {
+  filter: brightness(0.8);
+}
+
+.titlebar__btn svg {
+  width: 10px;
+  height: 10px;
+  stroke-width: 1.5;
+}
+
+.titlebar__btn:hover:not(.titlebar--mac .titlebar__btn) {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.titlebar__btn--close:hover:not(.titlebar--mac .titlebar__btn) {
+  background: var(--status-error);
+  color: white;
+}
+
+/* ─── Brand ───────────────────────────────────────────────────────────────── */
+
+.titlebar__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  -webkit-app-region: drag;
+}
+
+.titlebar--mac .titlebar__brand {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.titlebar__logo {
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.titlebar__logo-icon {
+  width: 16px;
+  height: 16px;
+  border-radius: 5px;
+  background: var(--accent-gradient);
+  box-shadow: var(--shadow-glow);
+  position: relative;
+  overflow: hidden;
+}
+
+.titlebar__logo-icon::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transform: rotate(45deg);
+  animation: shimmer 3s infinite linear;
+}
+
+.titlebar__name {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  background: var(--accent-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  opacity: 0.8;
+}

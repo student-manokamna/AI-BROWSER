@@ -1,0 +1,251 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   NEW TAB PAGE — Beautiful landing with search and shortcuts
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.newtab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+  background: var(--bg-base);
+  position: relative;
+  overflow: hidden;
+}
+
+/* ─── Background Glow ─────────────────────────────────────────────────────── */
+
+.newtab::before {
+  content: '';
+  position: absolute;
+  width: 800px;
+  height: 800px;
+  border-radius: 50%;
+  background: radial-gradient(circle, hsla(250, 80%, 65%, 0.12) 0%, transparent 70%);
+  top: -200px;
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: none;
+  filter: blur(80px);
+}
+
+.newtab::after {
+  content: '';
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, hsla(280, 80%, 60%, 0.08) 0%, transparent 70%);
+  bottom: -100px;
+  right: -100px;
+  pointer-events: none;
+  filter: blur(60px);
+}
+
+/* ─── Logo Area ───────────────────────────────────────────────────────────── */
+
+.newtab__logo {
+  margin-bottom: var(--space-10);
+  text-align: center;
+  animation: fadeIn 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 10;
+}
+
+.newtab__logo-mark {
+  width: 72px;
+  height: 72px;
+  border-radius: 20px;
+  background: var(--accent-gradient);
+  margin: 0 auto var(--space-4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 40px hsla(250, 80%, 65%, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.newtab__logo-mark::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transform: rotate(45deg);
+  animation: shimmer 4s infinite linear;
+}
+
+.newtab__logo-mark svg {
+  width: 32px;
+  height: 32px;
+  color: white;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+.newtab__title {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -1px;
+  background: linear-gradient(to bottom, #fff, #bbb);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.newtab__subtitle {
+  font-size: var(--font-size-md);
+  color: var(--text-muted);
+  margin-top: var(--space-2);
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+/* ─── Search Box ──────────────────────────────────────────────────────────── */
+
+.newtab__search {
+  width: 100%;
+  max-width: 600px;
+  margin-bottom: var(--space-12);
+  animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
+  position: relative;
+  z-index: 10;
+}
+
+.newtab__search-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: 0 var(--space-6);
+  height: 54px;
+  background: var(--glass-bg);
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  transition: all var(--transition-base);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.newtab__search-bar:focus-within {
+  border-color: var(--accent-primary);
+  background: var(--bg-surface);
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.3), 0 0 0 4px var(--accent-muted);
+  transform: translateY(-2px);
+}
+
+.newtab__search-icon {
+  color: var(--accent-primary);
+  flex-shrink: 0;
+  opacity: 0.8;
+}
+
+.newtab__search-icon svg {
+  width: 20px;
+  height: 20px;
+  stroke-width: 2.5;
+}
+
+.newtab__search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: var(--font-family);
+  font-size: 18px;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.newtab__search-input::placeholder {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+/* ─── Quick Links ─────────────────────────────────────────────────────────── */
+
+.newtab__shortcuts {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-4);
+  max-width: 640px;
+  width: 100%;
+  animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
+  z-index: 10;
+}
+
+.newtab__shortcut {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-6) var(--space-4);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 18px;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  text-decoration: none;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.newtab__shortcut:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--border-default);
+  transform: translateY(-4px);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
+}
+
+.newtab__shortcut-icon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: var(--accent-muted);
+  color: var(--accent-primary);
+  font-size: 22px;
+  font-weight: 700;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.newtab__shortcut-icon img {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+}
+
+.newtab__shortcut-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-align: center;
+  max-width: 100%;
+}
+
+.newtab__shortcut:hover .newtab__shortcut-label {
+  color: var(--text-primary);
+}
+
+/* ─── Bottom Info ─────────────────────────────────────────────────────────── */
+
+.newtab__footer {
+  position: absolute;
+  bottom: var(--space-8);
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  z-index: 10;
+}
