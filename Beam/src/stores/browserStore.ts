@@ -78,6 +78,7 @@ interface BrowserState {
 
   // ─── Theme Actions ──────────────────────────────────────────────────────────
   toggleTheme: () => void;
+  setTheme: (theme: 'dark' | 'light') => void;
 
   // ─── Workflow History Actions ─────────────────────────────────────────────────
   addWorkflowHistory: (item: WorkflowHistoryItem) => void;
@@ -255,6 +256,11 @@ export const useBrowserStore = create<BrowserState>((set, get) => ({
       document.documentElement.setAttribute('data-theme', newTheme);
       return { theme: newTheme };
     });
+  },
+
+  setTheme: (theme: 'dark' | 'light') => {
+    set({ theme });
+    document.documentElement.setAttribute('data-theme', theme);
   },
 
   // ─── Workflow History Actions ───────────────────────────────────────────────

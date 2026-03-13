@@ -19,7 +19,17 @@
 }
 
 .tabbar::-webkit-scrollbar {
-  display: none;
+  height: 4px;
+}
+.tabbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.tabbar::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 4px;
+}
+.tabbar:hover::-webkit-scrollbar-thumb {
+  background: var(--border-subtle);
 }
 
 /* ─── Individual Tab ──────────────────────────────────────────────────────── */
@@ -28,9 +38,10 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  padding: 0 var(--space-4);
-  min-width: 160px;
+  padding: 0 var(--space-3);
+  min-width: 48px;
   max-width: 260px;
+  flex: 1 1 auto;
   height: 34px;
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
@@ -170,6 +181,7 @@
   transition: all var(--transition-base);
   -webkit-app-region: no-drag;
   margin-left: var(--space-1);
+  flex-shrink: 0;
 }
 
 .tabbar__add:hover {

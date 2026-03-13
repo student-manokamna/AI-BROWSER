@@ -88,9 +88,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ onClose }) => {
     setTheme(newTheme);
     document.documentElement.setAttribute('data-theme', newTheme);
     window.electronAPI.settingsSet('theme', newTheme);
-    useBrowserStore.getState().theme === 'dark' 
-      ? useBrowserStore.getState().toggleTheme() 
-      : useBrowserStore.getState().toggleTheme();
+    useBrowserStore.getState().setTheme(newTheme);
   };
 
   const handleToggleSync = async () => {
