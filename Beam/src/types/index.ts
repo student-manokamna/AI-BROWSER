@@ -28,7 +28,7 @@ export function createNewTab(id?: string, url?: string): Tab {
 
 // ─── Agent Types ─────────────────────────────────────────────────────────────
 
-export type AgentStatus = 'idle' | 'thinking' | 'planning' | 'executing' | 'paused' | 'done' | 'error' | 'waiting_confirmation';
+export type AgentStatus = 'idle' | 'thinking' | 'planning' | 'executing' | 'paused' | 'done' | 'error' | 'waiting_confirmation' | 'waiting_human';
 
 export interface AgentTask {
   id: string;
@@ -203,7 +203,8 @@ export interface UserModel {
   provider: string;
   model: string;
   apiKey?: string;
-  endpoint?: string;
+  baseURL?: string;
+  createdAt?: number;
 }
 
 export interface HumanFeedbackRequest {
@@ -221,6 +222,57 @@ export interface HumanFeedbackOption {
 export interface HumanFeedbackResponse {
   id: string;
   selectedOptionId: string;
+}
+
+// ─── Agent Skill & Planning Types ───────────────────────────────────────────────
+
+export interface AgentSkillInput {
+  [key: string]: any;
+}
+
+export interface AgentSkillOutput {
+  success: boolean;
+  result?: any;
+  error?: string;
+}
+
+export interface AgentSkill {
+  id: string;
+  name: string;
+  description: string;
+  inputSchema: any;
+  outputSchema: any;
+}
+
+// Interface for JSON-serializable skill
+export interface JsonSkill {
+  id: string;
+  name: string;
+  description: string;
+  inputSchema: any;
+  outputSchema: any;
+  executionLogic?: string; // Optional: code string for custom execution
+}
+
+export interface AgentPlanStep {
+  id: string;
+  skill: string;
+  input: AgentSkillInput;
+  description: string;
+  expectedOutput: string;
+  status?: 'pending' | 'running' | 'completed' | 'failed';
+  result?: AgentSkillOutput;
+}
+
+export interface AgentPlan {
+  steps: AgentPlanStep[];
+  finalGoal: string;
+}
+
+export interface StepEvaluation {
+  needsReplan: boolean;
+  reason?: string;
+  adjustedPlan?: AgentPlan;
 }
 
 // ─── Window API Types ────────────────────────────────────────────────────────
@@ -282,6 +334,8 @@ export interface ElectronAPI {
   agentResume: () => Promise<{ success: boolean }>;
   agentStop: () => Promise<{ success: boolean }>;
   agentConfirmAction: (proceed: boolean) => Promise<{ success: boolean }>;
+  agentHumanFeedbackResponse: (response: HumanFeedbackResponse) => Promise<{ success: boolean }>;
+  executeAgentCommand: (command: string) => void;
   agentGetPendingConfirmation: () => Promise<{ action: any; stepDescription: string } | null>;
   agentInjectGoogleLogin: () => Promise<{ success: boolean }>;
   agentExecuteScript: (tabId: string, script: string) => Promise<any>;
@@ -313,13 +367,30 @@ export interface ElectronAPI {
   aiSetEnabled: (enabled: boolean) => Promise<any>;
   aiSetProvider: (provider: string, model: string) => Promise<any>;
   aiSetProviderConfig: (provider: string, config: any) => Promise<any>;
-  aiCheckConnection: (provider?: string) => Promise<any>;
+  aiCheckConnection: (provider?: string, apiKey?: string) => Promise<any>;
   aiChat: (messages: any[], provider?: string, model?: string) => Promise<any>;
+  
+  // Saved Models Management
+  aiSaveModel: (model: any) => Promise<UserModel>;
+  aiUpdateModel: (id: string, updates: any) => Promise<UserModel | null>;
+  aiDeleteModel: (id: string) => Promise<boolean>;
+  aiSetActiveModel: (id: string) => Promise<boolean>;
+  aiGetActiveModel: () => Promise<UserModel | null>;
+
+  // Agent Skills & Planning
+  agentGetSkills: () => Promise<AgentSkill[]>;
+  agentAddSkill: (skill: any) => Promise<{ success: boolean }>;
+  agentDeleteSkill: (skillId: string) => Promise<{ success: boolean }>;
+  agentPlanSteps: (command: string, context: any) => Promise<AgentPlan>;
+  agentExecuteSkill: (skillId: string, input: AgentSkillInput) => Promise<AgentSkillOutput>;
+  agentEvaluateStep: (data: any) => Promise<StepEvaluation>;
+  agentReplan: (data: any) => Promise<AgentPlan>;
+  activityLog: (message: string) => Promise<void>;
 
   // Agent events
   onAgentTaskUpdate: (callback: (task: AgentTask) => void) => void;
   onAgentNavigateWebview: (callback: (data: { url: string; tabId: string }) => void) => void;
-  onAgentDisplayResult: (callback: (data: any) => void) => void;
+  onAgentDisplayResult: (callback: (data: any) => void) => () => void;
   onAgentWebpageRead: (callback: (data: any) => void) => void;
   onAgentSuccessEvaluated: (callback: (data: any) => void) => void;
   onHumanFeedback: (callback: (request: HumanFeedbackRequest) => void) => void;

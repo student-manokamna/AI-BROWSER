@@ -27,7 +27,7 @@ export function NavigationBar() {
   // Initialize webview refs from window after mount
   useEffect(() => {
     const interval = setInterval(() => {
-      const refs = (window as any).__webviewRefs;
+      const refs = (window as any).__webviewRefs?.current;
       if (refs) {
         webviewRefsRef.current = refs;
       }

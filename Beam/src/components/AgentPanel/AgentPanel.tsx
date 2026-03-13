@@ -1,7 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useBrowserStore, WorkflowHistoryItem } from '../../stores/browserStore';
-import { AgentTask, UserModel, HumanFeedbackRequest, HumanFeedbackResponse } from '../../types';
+import { AgentTask, UserModel, HumanFeedbackRequest, HumanFeedbackResponse, AgentPlan } from '../../types';
 import { HumanFeedbackDialog } from '../HumanFeedbackDialog/HumanFeedbackDialog';
+import { SavedModelsDialog } from './SavedModelsDialog';
+// import { PlanReviewDialog } from './PlanReviewDialog';
+import { SkillsManagerDialog } from './SkillsManagerDialog';
+import { CompanionChat } from './CompanionChat';
+import { UserInputDialog } from './UserInputDialog';
+import { JsonSkill } from '../../types';
 import '../../styles/agent.css';
 
 interface Provider {
@@ -9,6 +15,7 @@ interface Provider {
   name: string;
   models: string[];
   requiresApiKey: boolean;
+  baseURL?: string;
 }
 
 interface ConnectionStatus {
@@ -29,14 +36,45 @@ export function AgentPanel() {
   const [aiEnabled, setAiEnabled] = useState(false);
   const [apiKey, setApiKey] = useState('');
   const setAgentPanel = useBrowserStore(s => s.setAgentPanel);
+  const tabs = useBrowserStore(s => s.tabs);
+  const activeTabId = useBrowserStore(s => s.activeTabId);
+  const activeTab = tabs.find(t => t.id === activeTabId);
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>({ connected: null, testing: false });
   const [userModels, setUserModels] = useState<UserModel[]>([]);
+  const [activeModel, setActiveModel] = useState<UserModel | null>(null);
+  const [showSavedModels, setShowSavedModels] = useState(false);
+  const [currentPlan, setCurrentPlan] = useState<AgentPlan | null>(null);
+  const [showPlanReview, setShowPlanReview] = useState(false);
   const [activityLog, setActivityLog] = useState<string[]>([]);
   const pollRef = useRef<NodeJS.Timeout | null>(null);
+  const [isAborted, setIsAborted] = useState(false);
+  
+  // Skills Manager State
+  const [userSkills, setUserSkills] = useState<JsonSkill[]>([]);
+  const [showSkillsManager, setShowSkillsManager] = useState(false);
+  
+  // Companion Chat State
+  const [showCompanionChat, setShowCompanionChat] = useState(false);
+  
+  // User Input Dialog State
+  const [showUserInput, setShowUserInput] = useState(false);
+  const [userInputPrompt, setUserInputPrompt] = useState('');
 
   useEffect(() => {
     loadAiConfig();
+    loadUserSkills();
+  }, []);
+
+  // Load active model
+  useEffect(() => {
+    const loadActiveModel = async () => {
+      if (window.electronAPI?.aiGetActiveModel) {
+        const model = await window.electronAPI.aiGetActiveModel();
+        setActiveModel(model);
+      }
+    };
+    loadActiveModel();
   }, []);
 
   useEffect(() => {
@@ -79,6 +117,10 @@ export function AgentPanel() {
   const addLog = (message: string) => {
     const timestamp = new Date().toLocaleTimeString();
     setActivityLog(prev => [...prev.slice(-4), `[${timestamp}] ${message}`]);
+    // Also log to external file
+    if (window.electronAPI?.activityLog) {
+      window.electronAPI.activityLog(message);
+    }
   };
 
   const loadAiConfig = async (retryCount = 0) => {
@@ -110,6 +152,61 @@ export function AgentPanel() {
       setUserModels(models || []);
     } catch (err: any) {
       console.error('[Agent] Failed to load AI config:', err);
+    }
+  };
+
+  const loadUserSkills = async () => {
+    if (!window.electronAPI?.agentGetSkills) return;
+    try {
+      const skills = await window.electronAPI.agentGetSkills();
+      setUserSkills(skills || []);
+    } catch (err: any) {
+      console.error('[Agent] Failed to load skills:', err);
+    }
+  };
+
+  const handleImportSkills = async (skillsToImport: JsonSkill[]) => {
+    if (!window.electronAPI?.agentAddSkill) return;
+    
+    let successCount = 0;
+    let failCount = 0;
+
+    for (const skill of skillsToImport) {
+      try {
+        const result = await window.electronAPI.agentAddSkill(skill);
+        if (result.success) {
+          setUserSkills(prev => {
+            // Avoid duplicates in UI state
+            if (prev.find(s => s.id === skill.id)) return prev;
+            return [...prev, skill];
+          });
+          successCount++;
+        } else {
+          failCount++;
+        }
+      } catch (err: any) {
+        failCount++;
+      }
+    }
+
+    if (successCount > 0) {
+      addLog(`Imported ${successCount} skills successfully.`);
+    }
+    if (failCount > 0) {
+      addLog(`Failed to import ${failCount} skills (might already exist).`);
+    }
+  };
+
+  const handleDeleteSkill = async (skillId: string) => {
+    if (!window.electronAPI?.agentDeleteSkill) return;
+    try {
+      const result = await window.electronAPI.agentDeleteSkill(skillId);
+      if (result.success) {
+        setUserSkills(prev => prev.filter(s => s.id !== skillId));
+        addLog(`Skill deleted: ${skillId}`);
+      }
+    } catch (err: any) {
+      addLog(`Error deleting skill: ${err.message}`);
     }
   };
 
@@ -183,12 +280,14 @@ export function AgentPanel() {
           const modelName = selectedModel || selectedProvider;
           const existingModel = userModels.find(m => m.provider === selectedProvider && m.model === selectedModel);
           
-          if (!existingModel && window.electronAPI?.aiAddUserModel) {
-            const newModel = await window.electronAPI.aiAddUserModel({
+          if (!existingModel && window.electronAPI?.aiSaveModel) {
+            const providerInfo = aiProviders.find(p => p.id === selectedProvider);
+            const newModel = await window.electronAPI.aiSaveModel({
               name: `${selectedProvider.toUpperCase()} - ${modelName}`,
               provider: selectedProvider,
               model: selectedModel,
               apiKey: apiKey,
+              baseURL: providerInfo?.baseURL || undefined,
             });
             setUserModels([...userModels, newModel]);
           }
@@ -207,44 +306,243 @@ export function AgentPanel() {
     }
   };
 
-  const handleSubmit = async () => {
-    if (!command.trim() || !window.electronAPI?.agentExecute) return;
+  const saveCurrentModel = async () => {
+    if (!selectedModel || !selectedProvider) return;
+    
+    // Get provider info to determine baseURL
+    const providerInfo = aiProviders.find(p => p.id === selectedProvider);
+    const modelData = {
+      name: `${selectedProvider.toUpperCase()} - ${selectedModel}`,
+      provider: selectedProvider,
+      model: selectedModel,
+      apiKey: apiKey,
+      baseURL: providerInfo?.baseURL || undefined,
+    };
+    
+    try {
+      const savedModel = await window.electronAPI.aiSaveModel(modelData);
+      setUserModels([...userModels, savedModel]);
+      
+      // Set as active if no active model exists
+      if (!activeModel) {
+        await window.electronAPI.aiSetActiveModel(savedModel.id);
+        setActiveModel(savedModel);
+      }
+      
+      // Refresh active model from backend to ensure sync
+      const backendModel = await window.electronAPI.aiGetActiveModel();
+      setActiveModel(backendModel);
+      
+      addLog(`Saved model: ${savedModel.name}`);
+    } catch (err: any) {
+      addLog(`Error saving model: ${err.message}`);
+    }
+  };
 
-    addLog(`Executing: "${command.substring(0, 50)}${command.length > 50 ? '...' : ''}"`);
+  const handleSetActiveModel = async (modelId: string) => {
+    try {
+      await window.electronAPI.aiSetActiveModel(modelId);
+      const model = userModels.find(m => m.id === modelId);
+      setActiveModel(model || null);
+      addLog(`Active model set to: ${model?.name}`);
+      // Force refresh from backend to ensure sync
+      const backendModel = await window.electronAPI.aiGetActiveModel();
+      if (backendModel?.id !== modelId) {
+        setActiveModel(backendModel);
+      }
+    } catch (err: any) {
+      addLog(`Error setting active model: ${err.message}`);
+    }
+  };
+
+  const handleDeleteModel = async (modelId: string) => {
+    try {
+      await window.electronAPI.aiDeleteModel(modelId);
+      setUserModels(userModels.filter(m => m.id !== modelId));
+      
+      // Update active model if we deleted the active one
+      if (activeModel?.id === modelId) {
+        const newActive = await window.electronAPI.aiGetActiveModel();
+        setActiveModel(newActive);
+      }
+      
+      addLog('Model deleted');
+    } catch (err: any) {
+      addLog(`Error deleting model: ${err.message}`);
+    }
+  };
+
+  const handleUpdateModel = async (modelId: string, updates: any) => {
+    try {
+      const updated = await window.electronAPI.aiUpdateModel(modelId, updates);
+      if (updated) {
+        setUserModels(userModels.map(m => m.id === modelId ? updated : m));
+        if (activeModel?.id === modelId) {
+          setActiveModel(updated);
+        }
+        addLog(`Model updated: ${updated.name}`);
+      }
+    } catch (err: any) {
+      addLog(`Error updating model: ${err.message}`);
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (!command.trim()) return;
+
+    addLog(`Planning: "${command.substring(0, 50)}${command.length > 50 ? '...' : ''}"`);
     setIsAiLoading(true);
+    setIsAborted(false);
     setHumanFeedback(null);
     
     try {
-      const task = await window.electronAPI.agentExecute(command);
-      setCurrentTask(task);
+      // Get page content for context (only log URL, not content)
+      let pageContent = '';
+      if (activeTab?.url && !activeTab?.url.startsWith('about:') && !activeTab?.url.startsWith('chrome://')) {
+        try {
+          const content = await window.electronAPI.agentExecuteScript(activeTabId || '', `
+            (function() {
+              const body = document.body;
+              const text = body ? body.innerText.substring(0, 8000) : '';
+              return text;
+            })();
+          `);
+          if (content) {
+            pageContent = content;
+            addLog(`Read ${pageContent.length} chars from page`);
+          }
+        } catch (e) {
+          addLog('Could not get page content');
+        }
+      }
+
+      // Step 1: Get AI to plan the steps
+      const context = {
+        currentUrl: activeTab?.url || '',
+        pageTitle: activeTab?.title || '',
+        pageContent: pageContent.substring(0, 2000), // Limit context size
+        activeModel: activeModel?.name || 'Default'
+      };
+      
+      const plan = await window.electronAPI.agentPlanSteps(command, context);
+      
+      if (!plan || !plan.steps || plan.steps.length === 0) {
+        addLog('AI failed to generate a plan');
+        setIsAiLoading(false);
+        return;
+      }
+      
+      setCurrentPlan(plan);
+      addLog(`Planned ${plan.steps.length} steps - Goal: ${plan.finalGoal}`);
+      plan.steps.forEach((step, i) => {
+        addLog(`  Step ${i+1}: ${step.skill} - ${step.description}`);
+      });
       setCommand('');
       
-      // If task has steps and doesn't need confirmation, execute them
-      if (task.steps && task.steps.length > 0 && task.status !== 'waiting_confirmation') {
-        addLog('Executing task...');
-        const executedTask = await window.electronAPI.agentExecutePlanned();
-        setCurrentTask(executedTask);
-        if (executedTask.status === 'done') {
-          addLog('Task completed!');
-        } else if (executedTask.status === 'error') {
-          addLog(`Error: ${executedTask.error}`);
-        }
-      } else if (task.status === 'waiting_confirmation') {
-        addLog('Waiting for confirmation...');
-      }
+      // Step 2: Execute immediately without approval
+      await handleExecutePlan(plan);
       
-      if (task.status === 'error') {
-        addLog(`Error: ${task.error}`);
-      }
     } catch (err: any) {
-      addLog(`Error: ${err.message || 'Failed to execute'}`);
-    } finally {
+      addLog(`Error planning: ${err.message}`);
       setIsAiLoading(false);
     }
   };
 
+  const handleExecutePlan = async (plan: AgentPlan) => {
+    addLog('Executing plan...');
+    
+    try {
+      let currentStepIndex = 0;
+      let stepResult = null;
+      
+      while (currentStepIndex < plan.steps.length) {
+        if (isAborted) {
+          addLog('Execution aborted by user');
+          break;
+        }
+
+        const step = plan.steps[currentStepIndex];
+        addLog(`Executing step ${currentStepIndex + 1}: ${step.description}`);
+        
+        // Execute the skill
+        stepResult = await window.electronAPI.agentExecuteSkill(step.skill, step.input);
+        
+        // Handle special actions from skill result (e.g., open companion chat)
+        if (stepResult.result?.action === 'open_companion_chat') {
+          addLog('Opening companion chat...');
+          setShowCompanionChat(true);
+        } else if (stepResult.result?.action === 'request_user_input') {
+          addLog(`AI needs input: ${stepResult.result.prompt}`);
+          setUserInputPrompt(stepResult.result.prompt);
+          setShowUserInput(true);
+          // Pause execution here - for now we just break and log
+          addLog('Waiting for user input...');
+          break;
+        }
+        
+        if (!stepResult.success) {
+           addLog(`Step failed: ${stepResult.error}`);
+           addLog('Task failed due to step failure.');
+           setCurrentTask({ ...currentTask, status: 'error', error: stepResult.error } as AgentTask);
+           setIsAiLoading(false);
+           return;
+        }
+        
+        // Log the step result
+        addLog(`Result: ${JSON.stringify(stepResult.result).substring(0, 100)}...`);
+        
+        // Send result back to AI for evaluation
+        const evaluation = await window.electronAPI.agentEvaluateStep({
+          stepResult,
+          step,
+          remainingSteps: plan.steps.slice(currentStepIndex + 1),
+          finalGoal: plan.finalGoal
+        });
+        
+        if (evaluation.needsReplan) {
+          addLog(`AI suggests replanning: ${evaluation.reason}`);
+          // Replan from current state
+          const newPlan = await window.electronAPI.agentReplan({
+            previousPlan: plan,
+            currentStep: currentStepIndex,
+            stepResult,
+            userCommand: plan.finalGoal
+          });
+          setCurrentPlan(newPlan);
+          currentStepIndex = 0;
+          continue;
+        }
+        
+        currentStepIndex++;
+      }
+      
+      if (!isAborted) {
+        addLog('Plan execution finished.');
+        setCurrentTask({ ...currentTask, status: 'done' } as AgentTask);
+      }
+    } catch (err: any) {
+      addLog(`Error executing: ${err.message}`);
+      setCurrentTask({ ...currentTask, status: 'error', error: err.message } as AgentTask);
+    } finally {
+      setIsAiLoading(false);
+      setIsAborted(false);
+    }
+  };
+
+  const handleAbort = () => {
+    setIsAborted(true);
+    addLog('Abort requested...');
+  };
+
+  const handleCancelPlan = () => {
+    setShowPlanReview(false);
+    setCurrentPlan(null);
+    setIsAiLoading(false);
+    addLog('Plan cancelled');
+  };
+
   const handleHumanFeedback = async (response: HumanFeedbackResponse) => {
-    const responseStr = String(response.response);
+    const responseStr = String(response.selectedOptionId);
     
     if (currentTask?.status === 'done' && responseStr.trim().length > 0) {
       setCommand(responseStr);
@@ -269,7 +567,7 @@ export function AgentPanel() {
       }
       setHumanFeedback(null);
     }
-  };;
+  };
 
   const handleStop = async () => {
     if (window.electronAPI?.agentStop) {
@@ -351,6 +649,9 @@ export function AgentPanel() {
             <button className="test-connection-btn" onClick={checkAiConnection} disabled={isAiLoading || !aiEnabled}>
               {isAiLoading ? 'Testing...' : 'Test Connection'}
             </button>
+            <button className="save-model-btn" onClick={saveCurrentModel} disabled={!aiEnabled || !selectedModel || isAiLoading}>
+              Save Model
+            </button>
           </div>
 
           {connectionStatus.connected !== null && (
@@ -358,18 +659,31 @@ export function AgentPanel() {
               {connectionStatus.connected ? '✓ Connected!' : `✗ ${connectionStatus.error || 'Failed'}`}
             </div>
           )}
+
+          <div className="settings-row">
+            <label>Saved Models</label>
+            <button className="saved-models-btn" onClick={() => setShowSavedModels(true)} disabled={userModels.length === 0}>
+              View All ({userModels.length})
+            </button>
+          </div>
+
+          <div className="settings-row">
+            <label>Skills</label>
+            <button className="skills-manager-btn" onClick={() => setShowSkillsManager(true)}>
+              Manage Skills ({userSkills.length})
+            </button>
+          </div>
+
+          {activeModel && (
+            <div className="active-model-badge">
+              <span>Active: {activeModel.name}</span>
+            </div>
+          )}
         </div>
       )}
 
       {humanFeedback && (
         <HumanFeedbackDialog request={humanFeedback} onResponse={handleHumanFeedback} task={currentTask} />
-      )}
-
-      {selectedModel && (
-        <div className="agent-panel__model-badge">
-          <span className="model-badge-label">Active:</span>
-          <span className="model-badge-name">{selectedModel}</span>
-        </div>
       )}
 
       <div className="agent-panel__input-row">
@@ -382,13 +696,22 @@ export function AgentPanel() {
           placeholder='What would you like to do?'
           autoFocus
         />
-        <button 
-          className={`agent-panel__submit ${isAiLoading ? 'agent-panel__submit--loading' : ''}`}
-          onClick={handleSubmit}
-          disabled={!command.trim() || isAiLoading}
-        >
-          {isAiLoading ? (<><div className="spinner spinner--small" />Processing</>) : (<>Execute</>)}
-        </button>
+        {isAiLoading ? (
+          <button 
+            className="agent-panel__abort"
+            onClick={handleAbort}
+          >
+            Abort
+          </button>
+        ) : (
+          <button 
+            className="agent-panel__submit"
+            onClick={handleSubmit}
+            disabled={!command.trim()}
+          >
+            Execute
+          </button>
+        )}
       </div>
 
       {activityLog.length > 0 && (
@@ -444,6 +767,41 @@ export function AgentPanel() {
           <li onClick={() => setCommand('Search for flights to Mumbai')}>"Search for flights to Mumbai"</li>
         </ul>
       </div>
+
+      <SavedModelsDialog
+        isOpen={showSavedModels}
+        onClose={() => setShowSavedModels(false)}
+        userModels={userModels}
+        activeModelId={activeModel?.id}
+        onSetActiveModel={handleSetActiveModel}
+        onDeleteModel={handleDeleteModel}
+        onUpdateModel={handleUpdateModel}
+      />
+
+      <SkillsManagerDialog
+        isOpen={showSkillsManager}
+        onClose={() => setShowSkillsManager(false)}
+        skills={userSkills}
+        onImportSkills={handleImportSkills}
+        onDeleteSkill={handleDeleteSkill}
+      />
+
+      <CompanionChat
+        isOpen={showCompanionChat}
+        onClose={() => setShowCompanionChat(false)}
+      />
+
+      <UserInputDialog
+        isOpen={showUserInput}
+        prompt={userInputPrompt}
+        onSubmit={(response) => {
+          setShowUserInput(false);
+          addLog(`User responded: ${response}`);
+          // Resume execution with user response
+          // For now, we just log it - a more complete implementation would pass this back to the AI
+        }}
+        onCancel={() => setShowUserInput(false)}
+      />
     </div>
   );
 }

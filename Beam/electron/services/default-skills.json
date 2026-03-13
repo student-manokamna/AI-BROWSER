@@ -1,0 +1,777 @@
+[
+  {
+    "id": "browse",
+    "name": "Browse",
+    "description": "Navigate to a URL - opens in a NEW background tab",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "url": { "type": "string", "description": "The URL to navigate to" },
+        "waitForLoad": { "type": "boolean", "description": "Wait for page to load" }
+      },
+      "required": ["url"]
+    },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" } } }
+  },
+  {
+    "id": "wait_for_manual_login",
+    "name": "Wait For Manual Login",
+    "description": "Wait for user to manually login. The agent will pause and wait for user to complete login manually.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "timeout": { "type": "number", "description": "Maximum time to wait in milliseconds" }
+      }
+    },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" } } }
+  },
+  {
+    "id": "wait_active",
+    "name": "Wait Active",
+    "description": "Set wait mode to ACTIVE - the agent actively monitors user behavior",
+    "inputSchema": { "type": "object", "properties": {} },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" } } }
+  },
+  {
+    "id": "wait_passive",
+    "name": "Wait Passive",
+    "description": "Set wait mode to PASSIVE - the agent monitors for specific conditions",
+    "inputSchema": { "type": "object", "properties": {} },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" } } }
+  },
+  {
+    "id": "wait_sleep",
+    "name": "Wait Sleep",
+    "description": "Set wait mode to SLEEP - the agent goes to sleep until explicitly woken",
+    "inputSchema": { "type": "object", "properties": {} },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" } } }
+  },
+  {
+    "id": "wake",
+    "name": "Wake",
+    "description": "Wake the agent from sleep mode",
+    "inputSchema": { "type": "object", "properties": {} },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" } } }
+  },
+  {
+    "id": "autofill",
+    "name": "Autofill",
+    "description": "Automatically fill stored username/password for the current website",
+    "inputSchema": { "type": "object", "properties": {} },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" } } }
+  },
+  {
+    "id": "wait_for_element",
+    "name": "Wait For Element",
+    "description": "Wait for a specific element to appear on the page",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "selector": { "type": "string", "description": "CSS selector for the element" },
+        "timeout": { "type": "number", "description": "Maximum time to wait in milliseconds" }
+      },
+      "required": ["selector"]
+    },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" } } }
+  },
+  {
+    "id": "remember_info",
+    "name": "Remember Info",
+    "description": "Store information for later use during multi-step tasks",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "key": { "type": "string", "description": "Key to store the information" },
+        "value": { "type": "string", "description": "Value to remember" }
+      },
+      "required": ["key", "value"]
+    },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" } } }
+  },
+  {
+    "id": "recall_info",
+    "name": "Recall Info",
+    "description": "Retrieve previously stored information by key",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "key": { "type": "string", "description": "Key to retrieve" }
+      },
+      "required": ["key"]
+    },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" }, "value": { "type": "string" } } }
+  },
+  {
+    "id": "get_all_tabs",
+    "name": "Get All Tabs",
+    "description": "Get a list of all open tabs in the browser",
+    "inputSchema": { "type": "object", "properties": {} },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" }, "tabs": { "type": "array" } } }
+  },
+  {
+    "id": "get_cookies",
+    "name": "Get Cookies",
+    "description": "Get all cookies for the current domain",
+    "inputSchema": { "type": "object", "properties": {} },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" } } }
+  },
+  {
+    "id": "clear_cookies",
+    "name": "Clear Cookies",
+    "description": "Clear all cookies for the current domain (logout)",
+    "inputSchema": { "type": "object", "properties": {} },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" } } }
+  },
+  {
+    "id": "select_all",
+    "name": "Select All",
+    "description": "Select all text in the current input or page",
+    "inputSchema": { "type": "object", "properties": {} },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" } } }
+  },
+  {
+    "id": "copy",
+    "name": "Copy",
+    "description": "Copy selected text to clipboard",
+    "inputSchema": { "type": "object", "properties": {} },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" } } }
+  },
+  {
+    "id": "paste",
+    "name": "Paste",
+    "description": "Paste from clipboard into the current input",
+    "inputSchema": { "type": "object", "properties": {} },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" } } }
+  },
+  {
+    "id": "screenshot_element",
+    "name": "Screenshot Element",
+    "description": "Take a screenshot of a specific element on the page",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "selector": { "type": "string", "description": "CSS selector for the element" }
+      },
+      "required": ["selector"]
+    },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" } } }
+  },
+  {
+    "id": "check_login_status",
+    "name": "Check Login Status",
+    "description": "Check if the user is currently logged in to the current website",
+    "inputSchema": { "type": "object", "properties": {} },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" } } }
+  },
+  {
+    "id": "logout",
+    "name": "Logout",
+    "description": "Logout from the current website by finding and clicking logout button",
+    "inputSchema": { "type": "object", "properties": {} },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" } } }
+  },
+  {
+    "id": "click_by_text",
+    "name": "Click By Text",
+    "description": "Click on a button or link by its visible text content",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "text": { "type": "string", "description": "Text to search for" },
+        "waitForNavigation": { "type": "boolean", "description": "Wait for navigation after click" }
+      },
+      "required": ["text"]
+    },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" } } }
+  },
+  {
+    "id": "read_html",
+    "name": "Read HTML",
+    "description": "Extract the full HTML content of the current page",
+    "inputSchema": { "type": "object", "properties": {} },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" } } }
+  },
+  {
+    "id": "save_session",
+    "name": "Save Session",
+    "description": "Save the current browser session for later restoration",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Name to identify this session" }
+      },
+      "required": ["name"]
+    },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" } } }
+  },
+  {
+    "id": "restore_session",
+    "name": "Restore Session",
+    "description": "Restore a previously saved browser session",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Name of the session to restore" }
+      },
+      "required": ["name"]
+    },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" } } }
+  },
+  {
+    "id": "extract_tables",
+    "name": "Extract Tables",
+    "description": "Extract data from HTML tables on the page",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "selector": { "type": "string", "description": "CSS selector for the table" }
+      }
+    },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" } } }
+  },
+  {
+    "id": "enable_stealth",
+    "name": "Enable Stealth",
+    "description": "Enable stealth mode to avoid bot detection",
+    "inputSchema": { "type": "object", "properties": {} },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" } } }
+  },
+  {
+    "id": "export_pdf",
+    "name": "Export PDF",
+    "description": "Export the current page as a PDF file",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "filename": { "type": "string", "description": "Filename for the PDF" }
+      }
+    },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" } } }
+  },
+  {
+    "id": "download_video",
+    "name": "Download Video",
+    "description": "Detect and download video from the current page",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "quality": { "type": "string", "description": "Preferred quality (best, worst)" }
+      }
+    },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" } } }
+  },
+  {
+    "id": "close_popups",
+    "name": "Close Popups",
+    "description": "Close all visible popups, modals, cookie consent banners",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "excludeSelectors": { "type": "string", "description": "Selectors to NOT close" },
+        "maxPopups": { "type": "number", "description": "Maximum popups to close" }
+      }
+    },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" } } }
+  },
+  {
+    "id": "evaluate_success",
+    "name": "Evaluate Success",
+    "description": "Evaluate if the task goal has been achieved based on current page state",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "successCriteria": { "type": "string", "description": "Description of what success looks like" },
+        "checkPageContent": { "type": "boolean", "description": "Evaluate based on page content" }
+      },
+      "required": ["successCriteria"]
+    },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" } } }
+  },
+  {
+    "id": "schedule_task",
+    "name": "Schedule Task",
+    "description": "Schedule a task to run at a specific time or interval",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "taskName": { "type": "string", "description": "Name for the scheduled task" },
+        "command": { "type": "string", "description": "Agent command to execute" },
+        "trigger": { "type": "string", "description": "once, daily, or interval" },
+        "time": { "type": "string", "description": "Time like 18:00" },
+        "interval": { "type": "number", "description": "Minutes between runs" }
+      },
+      "required": ["taskName", "command", "trigger"]
+    },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" } } }
+  },
+  {
+    "id": "repeat_until",
+    "name": "Repeat Until",
+    "description": "Repeat a command until a condition is met or timeout",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "command": { "type": "string", "description": "Command to execute" },
+        "condition": { "type": "string", "description": "JavaScript expression" },
+        "intervalMs": { "type": "number", "description": "Milliseconds between iterations" },
+        "maxIterations": { "type": "number", "description": "Maximum attempts" }
+      },
+      "required": ["command", "condition"]
+    },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" } } }
+  },
+  {
+    "id": "monitor_network",
+    "name": "Monitor Network",
+    "description": "Monitor network requests made by the page",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "durationMs": { "type": "number", "description": "Time to monitor in milliseconds" }
+      }
+    },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" } } }
+  },
+  {
+    "id": "detect_login_form",
+    "name": "Detect Login Form",
+    "description": "Detect whether the page contains a login form",
+    "inputSchema": { "type": "object", "properties": {} },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" } } }
+  },
+  {
+    "id": "detect_infinite_scroll",
+    "name": "Detect Infinite Scroll",
+    "description": "Detect if the page loads more content when scrolling to the bottom",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "waitMs": { "type": "number", "description": "Wait time after scrolling" }
+      }
+    },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" } } }
+  },
+  {
+    "id": "extract_json_ld",
+    "name": "Extract JSON LD",
+    "description": "Extract structured data embedded in the webpage using JSON-LD scripts",
+    "inputSchema": { "type": "object", "properties": {} },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" } } }
+  },
+  {
+    "id": "capture_console_errors",
+    "name": "Capture Console Errors",
+    "description": "Capture JavaScript console errors from the page",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "durationMs": { "type": "number", "description": "Time to listen for errors" }
+      }
+    },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" } } }
+  },
+  {
+    "id": "detect_captcha",
+    "name": "Detect Captcha",
+    "description": "Detect whether a CAPTCHA challenge is present on the page",
+    "inputSchema": { "type": "object", "properties": {} },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" } } }
+  },
+  {
+    "id": "block_resources",
+    "name": "Block Resources",
+    "description": "Block loading of certain resource types to speed up browsing",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "types": { "type": "array", "description": "Resource types to block (e.g. image, font, media)" }
+      },
+      "required": ["types"]
+    },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" } } }
+  },
+  {
+    "id": "record_actions",
+    "name": "Record Actions",
+    "description": "Record user interactions to replay later",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "durationMs": { "type": "number", "description": "Recording duration in milliseconds" }
+      }
+    },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" } } }
+  },
+  {
+    "id": "replay_actions",
+    "name": "Replay Actions",
+    "description": "Replay a previously recorded sequence of user actions",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "actions": { "type": "array", "description": "List of recorded actions" }
+      },
+      "required": ["actions"]
+    },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" } } }
+  },
+  {
+    "id": "auto_research_topic",
+    "name": "Auto Research Topic",
+    "description": "Automatically research a topic by browsing multiple pages",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "topic": { "type": "string", "description": "Topic to research" },
+        "maxSources": { "type": "number", "description": "Maximum number of sources" }
+      },
+      "required": ["topic"]
+    },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" } } }
+  },
+  {
+    "id": "auto_fill_form",
+    "name": "Auto Fill Form",
+    "description": "Automatically detect and fill form fields on the page",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "data": { "type": "object", "description": "Key-value pairs of field names and values" }
+      },
+      "required": ["data"]
+    },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" } } }
+  },
+  {
+    "id": "extract_structured",
+    "name": "Extract Structured",
+    "description": "Extract structured data from the current page using AI",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "schema": { "type": "string", "description": "Description of the data to extract" }
+      },
+      "required": ["schema"]
+    },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" } } }
+  },
+  {
+    "id": "solve_math_problem",
+    "name": "Solve Math Problem",
+    "description": "Solve mathematical problems using the AI model",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "problem": { "type": "string", "description": "The mathematical problem to solve" }
+      },
+      "required": ["problem"]
+    },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" } } }
+  }
+]
+  {
+    "id": "navigate",
+    "name": "Navigate",
+    "description": "Navigate the browser to a specific URL",
+    "inputSchema": {
+      "type": "object",
+      "properties": { "url": { "type": "string", "description": "The URL to open" } },
+      "required": ["url"]
+    },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" } } }
+  },
+  {
+    "id": "click",
+    "name": "Click",
+    "description": "Click on a button, link, or any clickable element",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "selector": { "type": "string", "description": "CSS selector" },
+        "text": { "type": "string", "description": "Text to search for" }
+      }
+    },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" } } }
+  },
+  {
+    "id": "type",
+    "name": "Type",
+    "description": "Type text into an input field",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "selector": { "type": "string", "description": "CSS selector for input" },
+        "value": { "type": "string", "description": "Text to type" },
+        "clear": { "type": "boolean", "description": "Clear before typing" }
+      },
+      "required": ["selector", "value"]
+    },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" } } }
+  },
+  {
+    "id": "extract_text",
+    "name": "Extract Text",
+    "description": "Extract visible text content from the page",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "selector": { "type": "string", "description": "Optional CSS selector" }
+      }
+    },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" }, "text": { "type": "string" } } }
+  },
+  {
+    "id": "extract_links",
+    "name": "Extract Links",
+    "description": "Extract all links from the current page",
+    "inputSchema": { "type": "object", "properties": {} },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" }, "links": { "type": "array" } } }
+  },
+  {
+    "id": "scroll",
+    "name": "Scroll",
+    "description": "Scroll the page up or down",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "direction": { "type": "string", "description": "up or down" },
+        "amount": { "type": "number", "description": "Pixels to scroll" }
+      },
+      "required": ["direction"]
+    },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" } } }
+  },
+  {
+    "id": "wait",
+    "name": "Wait",
+    "description": "Wait for a specified number of milliseconds",
+    "inputSchema": {
+      "type": "object",
+      "properties": { "ms": { "type": "number", "description": "Milliseconds to wait" } },
+      "required": ["ms"]
+    },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" } } }
+  },
+  {
+    "id": "screenshot",
+    "name": "Screenshot",
+    "description": "Capture a screenshot of the current page",
+    "inputSchema": { "type": "object", "properties": {} },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" } } }
+  },
+  {
+    "id": "check_credentials",
+    "name": "Check Credentials",
+    "description": "Check if login credentials are stored for the current website",
+    "inputSchema": {
+      "type": "object",
+      "properties": { "domain": { "type": "string", "description": "Domain to check" } }
+    },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" }, "credentials": { "type": "object" } } }
+  },
+  {
+    "id": "auto_login",
+    "name": "Auto Login",
+    "description": "Automatically login using stored credentials",
+    "inputSchema": { "type": "object", "properties": {} },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" } } }
+  },
+  {
+    "id": "take_input",
+    "name": "Take User Input",
+    "description": "Ask the user for input. The agent will pause and wait for user response",
+    "inputSchema": {
+      "type": "object",
+      "properties": { "prompt": { "type": "string", "description": "Question to ask" } },
+      "required": ["prompt"]
+    },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" }, "response": { "type": "string" } } }
+  },
+  {
+    "id": "companion_chat",
+    "name": "Companion Chat",
+    "description": "Open a chat interface with a companion AI for emotional support",
+    "inputSchema": { "type": "object", "properties": {} },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" } } }
+  },
+  {
+    "id": "get_page_info",
+    "name": "Get Page Info",
+    "description": "Get information about the current page (URL, title, metadata)",
+    "inputSchema": { "type": "object", "properties": {} },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" }, "url": { "type": "string" }, "title": { "type": "string" } } }
+  },
+  {
+    "id": "read_webpage",
+    "name": "Read Webpage",
+    "description": "Read the content of the current webpage for analysis",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "scope": { "type": "string", "description": "visible or all" },
+        "maxLength": { "type": "number", "description": "Max characters" }
+      }
+    },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" }, "content": { "type": "string" } } }
+  },
+  {
+    "id": "summarize_content",
+    "name": "Summarize Content",
+    "description": "Summarize the main content of the current page or provided text",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "text": { "type": "string", "description": "Text to summarize" },
+        "maxLength": { "type": "number", "description": "Max summary length" }
+      }
+    },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" }, "summary": { "type": "string" } } }
+  },
+  {
+    "id": "web_search",
+    "name": "Web Search",
+    "description": "Search the web for information",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "query": { "type": "string", "description": "Search query" },
+        "numResults": { "type": "number", "description": "Number of results" }
+      },
+      "required": ["query"]
+    },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" }, "results": { "type": "array" } } }
+  },
+  {
+    "id": "switch_to_tab",
+    "name": "Switch Tab",
+    "description": "Switch to a specific tab by index or title",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "index": { "type": "number", "description": "Tab index (0-based)" },
+        "title": { "type": "string", "description": "Tab title to find" }
+      }
+    },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" } } }
+  },
+  {
+    "id": "close_tab",
+    "name": "Close Tab",
+    "description": "Close a specific tab",
+    "inputSchema": {
+      "type": "object",
+      "properties": { "index": { "type": "number", "description": "Tab index to close" } }
+    },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" } } }
+  },
+  {
+    "id": "open_new_tab",
+    "name": "Open New Tab",
+    "description": "Open a new empty tab",
+    "inputSchema": { "type": "object", "properties": {} },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" } } }
+  },
+  {
+    "id": "reload",
+    "name": "Reload",
+    "description": "Reload the current page",
+    "inputSchema": {
+      "type": "object",
+      "properties": { "hard": { "type": "boolean", "description": "Force hard reload" } }
+    },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" } } }
+  },
+  {
+    "id": "go_back",
+    "name": "Go Back",
+    "description": "Navigate back in browser history",
+    "inputSchema": { "type": "object", "properties": {} },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" } } }
+  },
+  {
+    "id": "go_forward",
+    "name": "Go Forward",
+    "description": "Navigate forward in browser history",
+    "inputSchema": { "type": "object", "properties": {} },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" } } }
+  },
+  {
+    "id": "fill_form",
+    "name": "Fill Form",
+    "description": "Fill in a text input field",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "selector": { "type": "string", "description": "CSS selector" },
+        "value": { "type": "string", "description": "Value to enter" },
+        "clear": { "type": "boolean", "description": "Clear before filling" }
+      },
+      "required": ["selector", "value"]
+    },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" } } }
+  },
+  {
+    "id": "submit_form",
+    "name": "Submit Form",
+    "description": "Submit a form",
+    "inputSchema": {
+      "type": "object",
+      "properties": { "formSelector": { "type": "string", "description": "Form CSS selector" } }
+    },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" } } }
+  },
+  {
+    "id": "select_option",
+    "name": "Select Option",
+    "description": "Select an option from a dropdown",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "selector": { "type": "string", "description": "Select element CSS selector" },
+        "value": { "type": "string", "description": "Value to select" }
+      },
+      "required": ["selector", "value"]
+    },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" } } }
+  },
+  {
+    "id": "hover",
+    "name": "Hover",
+    "description": "Hover over an element",
+    "inputSchema": {
+      "type": "object",
+      "properties": { "selector": { "type": "string", "description": "Element CSS selector" } },
+      "required": ["selector"]
+    },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" } } }
+  },
+  {
+    "id": "press_key",
+    "name": "Press Key",
+    "description": "Press a keyboard key",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "key": { "type": "string", "description": "Key to press" },
+        "modifier": { "type": "string", "description": "ctrl, alt, shift" }
+      },
+      "required": ["key"]
+    },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" } } }
+  },
+  {
+    "id": "display_result",
+    "name": "Display Result",
+    "description": "Display information in the agent side panel",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "content": { "type": "string", "description": "Content to display" },
+        "type": { "type": "string", "description": "text, html, markdown, table" },
+        "title": { "type": "string", "description": "Title for the panel" }
+      },
+      "required": ["content"]
+    },
+    "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" } } }
+  }
+]

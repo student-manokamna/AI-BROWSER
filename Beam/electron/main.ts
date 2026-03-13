@@ -12,10 +12,33 @@ import { getCredentialWatcherService, WaitMode } from './services/CredentialWatc
 import { getSessionService } from './services/SessionService';
 import { getSchedulerService } from './services/SchedulerService';
 import { getPassiveSkillRunner } from './services/PassiveSkillRunner';
+import { getSkillRegistry } from './services/SkillRegistry';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // BEAM BROWSER — Main Process
 // ═══════════════════════════════════════════════════════════════════════════
+
+// Wrap console methods to filter out unwanted logs
+const originalConsole = { ...console };
+const filteredPatterns = ['[AdBlock', 'collector.github.com', 'api.github.com/_private'];
+
+function shouldFilterLog(args: any[]): boolean {
+  const message = args.map(a => typeof a === 'string' ? a : JSON.stringify(a)).join(' ');
+  return filteredPatterns.some(p => message.includes(p));
+}
+
+console.log = (...args: any[]) => {
+  if (shouldFilterLog(args)) return;
+  originalConsole.log(...args);
+};
+console.warn = (...args: any[]) => {
+  if (shouldFilterLog(args)) return;
+  originalConsole.warn(...args);
+};
+console.error = (...args: any[]) => {
+  if (shouldFilterLog(args)) return;
+  originalConsole.error(...args);
+};
 
 // ─── Fallback File Logger (always available) ───────────────────────────────
 
@@ -24,26 +47,33 @@ const logFilePath = path.join(userDataPath, 'beam-startup.log');
 
 function fallbackLog(level: string, ...args: any[]) {
   try {
-    const timestamp = new Date().toISOString();
-    const message = args.map(arg => {
-      if (arg instanceof Error) {
-        return `${arg.message}\n${arg.stack}`;
-      }
+    // Filter out AdBlock logs and large content
+    const messageStr = args.map(arg => {
+      if (arg instanceof Error) return `${arg.message}\n${arg.stack}`;
       if (typeof arg === 'object') {
         try {
-          return JSON.stringify(arg);
-        } catch {
-          return String(arg);
-        }
+          const json = JSON.stringify(arg);
+          // Skip if it's AdBlock related or large content
+          if (json.includes('[AdBlock') || json.includes('collector.github.com') || json.length > 5000) {
+            return null;
+          }
+          return json;
+        } catch { return String(arg); }
       }
       return String(arg);
-    }).join(' ');
-    
-    const logLine = `[${timestamp}] [${level}] ${message}\n`;
+    }).filter(m => m !== null).join(' ');
+
+    // Skip if filtered out
+    if (!messageStr || messageStr.includes('[AdBlock') || messageStr.includes('collector.github.com')) {
+      return;
+    }
+
+    const timestamp = new Date().toISOString();
+    const logLine = `[${timestamp}] [${level}] ${messageStr}\n`;
     
     fs.appendFileSync(logFilePath, logLine, 'utf8');
   } catch (e) {
-    console.error('Fallback log failed:', e);
+    // Silent fail for logging
   }
 }
 
@@ -678,6 +708,13 @@ ipcMain.handle('renderer-log', async (_event, level: string, message: string) =>
   return { received: true };
 });
 
+// Activity Log from Agent
+ipcMain.handle('activity-log', async (_event, message: string) => {
+  fallbackInfo(`[Activity] ${message}`);
+  log.info(`[Activity] ${message}`);
+  return { received: true };
+});
+
 // ─── Navigation ─────────────────────────────────────────────────────────────
 
 ipcMain.handle('navigate', async (_event, _tabId: string, _url: string) => {
@@ -1113,6 +1150,70 @@ ipcMain.handle('ai-check-connection', async (_event, provider?: string) => {
 ipcMain.handle('ai-chat', async (_event, messages: any[], provider?: string, model?: string) => {
   const aiService = getAIService();
   return await aiService.chat(messages, provider as any, model);
+});
+
+// Saved models management
+ipcMain.handle('ai-save-model', async (_event, modelData: any) => {
+  const aiService = getAIService();
+  return await aiService.addUserModel(modelData);
+});
+
+ipcMain.handle('ai-update-model', async (_event, id: string, updates: any) => {
+  const aiService = getAIService();
+  return await aiService.updateUserModel(id, updates);
+});
+
+ipcMain.handle('ai-delete-model', async (_event, id: string) => {
+  const aiService = getAIService();
+  return await aiService.deleteUserModel(id);
+});
+
+ipcMain.handle('ai-set-active-model', async (_event, id: string) => {
+  const aiService = getAIService();
+  return await aiService.setActiveModel(id);
+});
+
+ipcMain.handle('ai-get-active-model', async () => {
+  const aiService = getAIService();
+  return await aiService.getActiveModel();
+});
+
+// Agent Skills & Planning
+ipcMain.handle('agent-get-skills', async () => {
+  const skillRegistry = getSkillRegistry();
+  return skillRegistry.getSkills();
+});
+
+ipcMain.handle('agent-add-skill', async (_event, skill: any) => {
+  const skillRegistry = getSkillRegistry();
+  const success = skillRegistry.addSkill(skill);
+  return { success };
+});
+
+ipcMain.handle('agent-delete-skill', async (_event, skillId: string) => {
+  const skillRegistry = getSkillRegistry();
+  const success = skillRegistry.deleteSkill(skillId);
+  return { success };
+});
+
+ipcMain.handle('agent-plan-steps', async (_event, command: string, context: any) => {
+  const aiService = getAIService();
+  return await aiService.planSteps(command, context);
+});
+
+ipcMain.handle('agent-evaluate-step', async (_event, data: any) => {
+  const aiService = getAIService();
+  return await aiService.evaluateStep(data);
+});
+
+ipcMain.handle('agent-replan', async (_event, data: any) => {
+  const aiService = getAIService();
+  return await aiService.replan(data);
+});
+
+ipcMain.handle('agent-execute-skill', async (_event, skillId: string, input: any) => {
+  const skillRegistry = getSkillRegistry();
+  return await skillRegistry.execute(skillId, input);
 });
 
 ipcMain.handle('ai-get-suggestions', async () => {

@@ -281,6 +281,23 @@ contextBridge.exposeInMainWorld('electronAPI', {
   aiSetProviderConfig: (provider: string, config: any) => ipcRenderer.invoke('ai-set-provider-config', provider, config),
   aiCheckConnection: (provider?: string) => ipcRenderer.invoke('ai-check-connection', provider),
   aiChat: (messages: any[], provider?: string, model?: string) => ipcRenderer.invoke('ai-chat', messages, provider, model),
+  
+  // Saved Models Management
+  aiSaveModel: (model: any) => ipcRenderer.invoke('ai-save-model', model),
+  aiUpdateModel: (id: string, updates: any) => ipcRenderer.invoke('ai-update-model', id, updates),
+  aiDeleteModel: (id: string) => ipcRenderer.invoke('ai-delete-model', id),
+  aiSetActiveModel: (id: string) => ipcRenderer.invoke('ai-set-active-model', id),
+  aiGetActiveModel: () => ipcRenderer.invoke('ai-get-active-model'),
+  
+  // Agent Skills & Planning
+  agentGetSkills: () => ipcRenderer.invoke('agent-get-skills'),
+  agentAddSkill: (skill: any) => ipcRenderer.invoke('agent-add-skill', skill),
+  agentDeleteSkill: (skillId: string) => ipcRenderer.invoke('agent-delete-skill', skillId),
+  agentPlanSteps: (command: string, context: any) => ipcRenderer.invoke('agent-plan-steps', command, context),
+  agentExecuteSkill: (skillId: string, input: any) => ipcRenderer.invoke('agent-execute-skill', skillId, input),
+  agentEvaluateStep: (data: any) => ipcRenderer.invoke('agent-evaluate-step', data),
+  agentReplan: (data: any) => ipcRenderer.invoke('agent-replan', data),
+  activityLog: (message: string) => ipcRenderer.invoke('activity-log', message),
 });
 
 console.log('[Preload] Beam Browser preload script loaded');

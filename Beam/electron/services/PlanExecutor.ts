@@ -190,6 +190,37 @@ export class PlanExecutor {
         }
       }
 
+      // AI-powered evaluation after each step
+      if (i < plan.steps.length - 1) {
+        const remainingSteps = plan.steps.slice(i + 1);
+        const evaluation = await this.planGenerator.evaluateStepProgress(
+          stepResult,
+          step,
+          remainingSteps,
+          plan.goal,
+          context
+        );
+
+        if (evaluation.needsReplan) {
+          log.info('[PlanExecutor] AI suggests replanning:', evaluation.reason);
+          
+          // Replan from current state
+          const newPlan = await this.planGenerator.replanFromCurrentState(
+            plan,
+            i,
+            stepResult,
+            plan.goal,
+            context
+          );
+          
+          // Update the plan and continue with new steps
+          plan = newPlan;
+          // Reset the loop index to execute the new plan from the start
+          // But we need to track what we've already done
+          log.info('[PlanExecutor] Replanned with', plan.steps.length, 'steps');
+        }
+      }
+
       if (await this.isGoalAccomplished(plan, context, executedSteps)) {
         log.info('[PlanExecutor] Goal accomplished early at step:', i + 1);
         completedEarly = true;

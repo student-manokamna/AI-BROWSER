@@ -123,8 +123,6 @@ function App() {
     };
   }, [isDragging, dragOffset]);
 
-  console.log('[Renderer] App rendering with theme:', theme);
-  
   return (
     <div className="app-container">
       <TitleBar />

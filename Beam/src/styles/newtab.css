@@ -112,7 +112,7 @@
   margin-bottom: var(--space-12);
   animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
   position: relative;
-  z-index: 10;
+  z-index: 100;
 }
 
 .newtab__search-bar {

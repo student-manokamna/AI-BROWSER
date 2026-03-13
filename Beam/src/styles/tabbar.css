@@ -154,6 +154,11 @@
   flex-shrink: 0;
   opacity: 0;
   transition: all var(--transition-fast);
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
 }
 
 .tabbar__tab:hover .tabbar__close {

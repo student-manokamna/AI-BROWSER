@@ -5,7 +5,7 @@ import { NewTabPage } from '../NewTabPage/NewTabPage';
 import { SettingsPanel } from '../SettingsPanel/SettingsPanel';
 import '../../styles/webview.css';
 
-console.log('[WebViewContainer] Module loaded');
+
 
 interface WebViewProps {
   tabId: string;
@@ -18,18 +18,15 @@ const WebView = memo(function WebView({ tabId, initialUrl, isActive, onRegister 
   const webviewRef = useRef<any>(null);
   const hasRegisteredRef = useRef<boolean>(false);
 
-  console.log(`[WebView ${tabId}] Rendering with url: ${initialUrl}, isActive: ${isActive}`);
+
 
   useEffect(() => {
     if (hasRegisteredRef.current) return;
 
     const webview = webviewRef.current;
     if (!webview) {
-      console.log(`[WebView ${tabId}] No webview ref yet`);
       return;
     }
-
-    console.log(`[WebView ${tabId}] Registering webview`);
     hasRegisteredRef.current = true;
     onRegister(tabId, webview);
   }, [tabId, onRegister]);
@@ -46,13 +43,6 @@ const WebView = memo(function WebView({ tabId, initialUrl, isActive, onRegister 
     />
   );
 }, (prevProps, nextProps) => {
-  console.log(`[WebView ${prevProps.tabId}] Memo comparison:`, {
-    prevUrl: prevProps.initialUrl,
-    nextUrl: nextProps.initialUrl,
-    sameTabId: prevProps.tabId === nextProps.tabId,
-    sameUrl: prevProps.initialUrl === nextProps.initialUrl,
-    sameActive: prevProps.isActive === nextProps.isActive
-  });
   return prevProps.tabId === nextProps.tabId &&
     prevProps.initialUrl === nextProps.initialUrl &&
     prevProps.isActive === nextProps.isActive;
@@ -91,27 +81,21 @@ export function WebViewContainer() {
 
     // Listen for agent tab operations
     const handleAgentGetTabs = () => {
-      console.log('[WebViewContainer] handleAgentGetTabs called');
       const allTabs = useBrowserStore.getState().tabs;
       const tabData = allTabs.map(t => ({ id: t.id, title: t.title, url: t.url }));
-      console.log('[WebViewContainer] Sending tabs:', tabData);
       window.electronAPI?.sendToMain('agent-get-tabs-response', tabData);
     };
 
     const handleAgentSwitchTab = (tabId: string) => {
-      console.log('[WebViewContainer] handleAgentSwitchTab called with tabId:', tabId);
       switchTab(tabId);
-      console.log('[WebViewContainer] Called switchTab for:', tabId);
       window.electronAPI?.agentSetActiveTabId(tabId);
     };
 
     const handleAgentCloseTab = (tabId: string) => {
-      console.log('[WebViewContainer] handleAgentCloseTab called with tabId:', tabId);
       useBrowserStore.getState().closeTab(tabId);
     };
 
     const handleAgentCreateTab = (url: string) => {
-      console.log('[WebViewContainer] handleAgentCreateTab called with url:', url);
       const newTabId = addTab(url || 'about:blank');
       setTimeout(() => {
         switchTab(newTabId);
@@ -121,12 +105,10 @@ export function WebViewContainer() {
 
     // Get page state from active webview
     const handleAgentGetPageState = () => {
-      console.log('[WebViewContainer] handleAgentGetPageState called');
       const currentActiveTabId = useBrowserStore.getState().activeTabId;
       const webview = webviewRefs.current.get(currentActiveTabId);
 
       if (webview) {
-        console.log('[WebViewContainer] Found webview for tab:', currentActiveTabId);
         webview.executeJavaScript(`
           (function() {
             return {
@@ -136,15 +118,12 @@ export function WebViewContainer() {
             };
           })()
         `).then((result: any) => {
-          console.log('[WebViewContainer] Page state result:', result);
           // Use the response channel the main process expects
           window.electronAPI?.sendToMain('agent-page-state-result', result);
         }).catch((err: any) => {
-          console.error('[WebViewContainer] Failed to get page state:', err);
           window.electronAPI?.sendToMain('agent-page-state-result', { error: err.message });
         });
       } else {
-        console.log('[WebViewContainer] No webview found for tab:', currentActiveTabId);
         window.electronAPI?.sendToMain('agent-page-state-result', { error: 'No webview found' });
       }
     };
@@ -177,15 +156,11 @@ export function WebViewContainer() {
       updateTabRef.current(tabId, { url: e.url, favicon, canGoBack: webview.canGoBack(), canGoForward: webview.canGoForward(), isLoading: false });
     };
     const handleNavigateInPage = (e: any) => {
-      console.log(`[WebView ${tabId}] did-navigate-in-page: ${e.url}, isMainFrame: ${e.isMainFrame}`);
       if (!e.isMainFrame) return;
 
       const oldUrl = webview?.getURL();
-      console.log(`[WebView ${tabId}] Old URL: ${oldUrl}`);
-      console.log(`[WebView ${tabId}] New URL: ${e.url}`);
 
       if (oldUrl === e.url) {
-        console.log(`[WebView ${tabId}] URL unchanged, skipping update`);
         return;
       }
 
@@ -199,8 +174,7 @@ export function WebViewContainer() {
         updateTabRef.current(tabId, { isLoading: false });
       }
     };
-    const handleRenderProcessGone = (e: any) => console.warn(`[WebView ${tabId}] Render process gone:`, e.reason);
-    const handleCrashed = () => console.error(`[WebView ${tabId}] Crashed`);
+
 
     webview.addEventListener('did-start-loading', handleStartLoading);
     webview.addEventListener('did-stop-loading', handleStopLoading);
@@ -209,8 +183,6 @@ export function WebViewContainer() {
     webview.addEventListener('did-navigate-in-page', handleNavigateInPage);
     webview.addEventListener('page-favicon-updated', handleFaviconUpdated);
     webview.addEventListener('did-fail-load', handleFailLoad);
-    webview.addEventListener('render-process-gone', handleRenderProcessGone);
-    webview.addEventListener('crashed', handleCrashed);
   }, []);
 
   useEffect(() => {
@@ -242,7 +214,7 @@ export function WebViewContainer() {
         const url = typeof tab.url === 'string' ? tab.url : 'about:blank';
         const isNew = isNewTabUrl(url);
 
-        console.log(`[WebViewContainer] Rendering tab: ${tab.id}, url: ${url}, isActive: ${isActive}, activeTabId: ${activeTabId}`);
+
 
         if (tab.isSettings) {
           return (

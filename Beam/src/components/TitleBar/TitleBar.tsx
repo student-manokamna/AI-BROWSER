@@ -16,14 +16,6 @@ export function TitleBar() {
 
   const controls = (
     <div className={`titlebar__controls ${isMac ? 'titlebar__controls--mac' : ''}`}>
-      <button className="titlebar__btn titlebar__btn--close" onClick={handleClose} title="Close">
-        {isMac ? null : (
-          <svg viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.2">
-            <line x1="1" y1="1" x2="9" y2="9" />
-            <line x1="9" y1="1" x2="1" y2="9" />
-          </svg>
-        )}
-      </button>
       <button className="titlebar__btn titlebar__btn--minimize" onClick={handleMinimize} title="Minimize">
         {isMac ? null : (
           <svg viewBox="0 0 10 1" fill="currentColor">
@@ -40,6 +32,14 @@ export function TitleBar() {
         ) : (
           <svg viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1">
             <rect x="1" y="1" width="8" height="8" />
+          </svg>
+        )}
+      </button>
+      <button className="titlebar__btn titlebar__btn--close" onClick={handleClose} title="Close">
+        {isMac ? null : (
+          <svg viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.2">
+            <line x1="1" y1="1" x2="9" y2="9" />
+            <line x1="9" y1="1" x2="1" y2="9" />
           </svg>
         )}
       </button>

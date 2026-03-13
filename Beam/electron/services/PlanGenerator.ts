@@ -545,6 +545,100 @@ Respond with a JSON object in the same format as before.`;
 
     return await this.generatePlan(failedPlan.goal, context, false);
   }
+
+  /**
+   * Evaluate step progress and determine if replanning is needed
+   * This is called after each step to assess if the agent is on track
+   */
+  async evaluateStepProgress(
+    stepResult: any,
+    step: any,
+    remainingSteps: any[],
+    finalGoal: string,
+    context: SkillContext
+  ): Promise<{ needsReplan: boolean; reason?: string }> {
+    log.info('[PlanGenerator] Evaluating step progress for:', step.skillId);
+
+    const prompt = `Evaluate if the agent is on track after executing a step.
+
+Step executed: ${step.description}
+Step result: ${JSON.stringify(stepResult, null, 2)}
+Remaining steps: ${remainingSteps.length}
+Final goal: "${finalGoal}"
+
+Current page context: ${context.url || 'Unknown'}
+
+Should the agent replan? The agent should replan if:
+1. The step failed completely
+2. The step succeeded but the page changed unexpectedly
+3. The remaining steps are no longer valid
+4. A better approach became apparent
+
+Respond with JSON:
+{
+  "needsReplan": boolean,
+  "reason": string (if needsReplan is true)
+}
+
+Respond ONLY with valid JSON, no other text.`;
+
+    const result = await this.aiService.chat([
+      { role: 'system', content: 'You are an AI that evaluates agent progress after each step.' },
+      { role: 'user', content: prompt }
+    ]);
+
+    if (result.content) {
+      try {
+        return JSON.parse(result.content);
+      } catch (err) {
+        log.warn('[PlanGenerator] Failed to parse evaluation response');
+        return { needsReplan: false };
+      }
+    }
+
+    return { needsReplan: false };
+  }
+
+  /**
+   * Replan from current state based on step result
+   */
+  async replanFromCurrentState(
+    previousPlan: GeneratedPlan,
+    currentStepIndex: number,
+    stepResult: any,
+    userCommand: string,
+    context: SkillContext
+  ): Promise<GeneratedPlan> {
+    log.info('[PlanGenerator] Replanning from current state, step:', currentStepIndex);
+
+    const prompt = `Replan based on current state.
+
+Previous plan: ${JSON.stringify(previousPlan.steps.map(s => s.description), null, 2)}
+Current step index: ${currentStepIndex}
+Step result: ${JSON.stringify(stepResult, null, 2)}
+User command: "${userCommand}"
+
+Create a new plan starting from the current state. Consider what has been completed and what still needs to be done.
+
+Respond with a JSON plan object, no other text.`;
+
+    const result = await this.aiService.chat([
+      { role: 'system', content: 'You are an AI that generates plans from current state.' },
+      { role: 'user', content: prompt }
+    ]);
+
+    if (result.content) {
+      try {
+        const parsed = JSON.parse(result.content);
+        // Convert the parsed plan to GeneratedPlan format
+        return await this.generatePlan(userCommand, context, false);
+      } catch (err) {
+        log.warn('[PlanGenerator] Failed to parse replan response');
+      }
+    }
+
+    return await this.generatePlan(userCommand, context, false);
+  }
 }
 
 let planGenerator: PlanGenerator | null = null;

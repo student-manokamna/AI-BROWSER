@@ -34,7 +34,7 @@ log = {
 };
 
 // ─── New Skill Types for Enhanced Agent ────────────────────────────────────────
-
+/*
 export type AgentActionType =
   | 'browse'
   | 'BROWSE'
@@ -828,7 +828,7 @@ export const AGENT_FUNCTIONS: AgentFunction[] = [
     riskLevel: 'low'
   }
 ];
-
+*/
 export function getAgentFunctionsManifest(): string {
   return AGENT_FUNCTIONS.map(f => {
     const params = f.parameters.map(p =>

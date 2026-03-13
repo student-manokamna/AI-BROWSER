@@ -13,7 +13,6 @@ export function TabBar() {
   const addTab = useBrowserStore(s => s.addTab);
 
   const handleTabClick = (e: React.MouseEvent, tabId: string) => {
-    console.log('[TabBar] Clicked tab:', tabId, 'activeTabId:', activeTabId, 'target:', e.target);
     e.preventDefault();
     e.stopPropagation();
     if (tabId !== activeTabId) {
@@ -64,7 +63,7 @@ export function TabBar() {
       ))}
 
       {/* Add tab button */}
-      <button className="tabbar__add" onClick={addTab} title="New tab">
+      <button className="tabbar__add" onClick={() => addTab()} title="New tab">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <line x1="12" y1="5" x2="12" y2="19" />
           <line x1="5" y1="12" x2="19" y2="12" />

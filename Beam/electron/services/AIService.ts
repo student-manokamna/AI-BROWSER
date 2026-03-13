@@ -107,6 +107,7 @@ export interface AIServiceConfig {
   defaultModel: string;
   providers: Record<ModelProvider, ModelConfig>;
   userModels: UserModel[];
+  activeModelId?: string;
 }
 
 const DEFAULT_PROVIDERS: ProviderInfo[] = [
@@ -374,9 +375,53 @@ export class AIService {
     if (index === -1) return false;
     
     this.config.userModels.splice(index, 1);
+    
+    // If deleting the active model, set a new active model
+    if (this.config.activeModelId === id) {
+      if (this.config.userModels.length > 0) {
+        // Set the next model or first model as active
+        const newIndex = Math.min(index, this.config.userModels.length - 1);
+        this.config.activeModelId = this.config.userModels[newIndex].id;
+      } else {
+        this.config.activeModelId = undefined;
+      }
+    }
+    
     await this.saveConfig();
     log.info('[AI] Deleted user model:', id);
     return true;
+  }
+
+  async setActiveModel(id: string): Promise<boolean> {
+    const model = this.config.userModels.find(m => m.id === id);
+    if (!model) return false;
+    
+    this.config.activeModelId = id;
+    await this.saveConfig();
+    log.info('[AI] Set active model:', model.name);
+    return true;
+  }
+
+  async getActiveModel(): Promise<UserModel | null> {
+    if (!this.config.activeModelId) {
+      // Return first model if no active model set
+      if (this.config.userModels.length > 0) {
+        this.config.activeModelId = this.config.userModels[0].id;
+        await this.saveConfig();
+        return this.config.userModels[0];
+      }
+      return null;
+    }
+    
+    const model = this.config.userModels.find(m => m.id === this.config.activeModelId);
+    if (!model && this.config.userModels.length > 0) {
+      // Active model was deleted, set first model as active
+      this.config.activeModelId = this.config.userModels[0].id;
+      await this.saveConfig();
+      return this.config.userModels[0];
+    }
+    
+    return model || null;
   }
 
   isEnabled(): boolean {
@@ -484,25 +529,23 @@ export class AIService {
       return { content: '', error: 'AI service is disabled' };
     }
 
-    const prov = provider || this.config.defaultProvider;
+    // Check if we're using a user model
+    const userModel = this.config.userModels.find(m => m.id === this.config.activeModelId);
+    const prov = provider || (userModel?.provider as ModelProvider) || this.config.defaultProvider;
     const config = this.config.providers[prov];
-    const modelId = model || this.config.defaultModel || config.model;
+    const modelId = model || (userModel?.model) || this.config.defaultModel || config.model;
+    const effectiveBaseURL = userModel?.baseURL || config.baseURL;
     
     log.info('[AIService] Chat request details:', {
-      prov,
-      providerArg: provider,
-      modelArg: model,
-      configModel: config?.model,
-      defaultModel: this.config.defaultModel,
-      modelId,
-      defaultProvider: this.config.defaultProvider
+      provider: prov,
+      model: modelId,
+      baseURL: effectiveBaseURL,
+      isActiveUserModel: !!userModel
     });
 
-    // Log conversation to agent log
-    const messagesLog = messages.map((m: any) => m.role === 'system' ? { role: m.role, content: m.content?.substring(0, 200) + '...' } : m);
-    log.info('[AI-CHAT] User/Assistant messages:', JSON.stringify(messagesLog, null, 2));
-
-    console.log('[AIService] Chat request:', { provider: prov, model: modelId, baseURL: config.baseURL });
+    // Don't log full conversation - it's too verbose
+    
+    console.log('[AIService] Chat request:', { provider: prov, model: modelId, baseURL: effectiveBaseURL });
 
     try {
       let response: any;
@@ -510,7 +553,7 @@ export class AIService {
       console.log('[AIService] Making chat request to provider:', prov);
 
       if (prov === 'ollama') {
-        const url = `${config.baseURL}/api/chat`;
+        const url = `${effectiveBaseURL}/api/chat`;
         console.log('[AIService] Making request to:', url);
         response = await this.makeRequest('POST', url, JSON.stringify({
           model: modelId,
@@ -525,7 +568,7 @@ export class AIService {
         return { content };
       }
       else if (prov === 'lmstudio' || prov === 'custom') {
-        response = await this.makeRequest('POST', `${config.baseURL}/chat/completions`, JSON.stringify({
+        response = await this.makeRequest('POST', `${effectiveBaseURL}/chat/completions`, JSON.stringify({
           model: modelId,
           messages,
           temperature: config.temperature,
@@ -537,7 +580,7 @@ export class AIService {
         return { content: response.choices?.[0]?.message?.content || '' };
       }
       else if (prov === 'openai') {
-        response = await this.makeRequest('POST', `${config.baseURL}/chat/completions`, JSON.stringify({
+        response = await this.makeRequest('POST', `${effectiveBaseURL}/chat/completions`, JSON.stringify({
           model: modelId,
           messages,
           temperature: config.temperature,
@@ -554,7 +597,7 @@ export class AIService {
         const anthropicMessages = messages.filter(m => m.role !== 'system');
         const systemMessage = messages.find(m => m.role === 'system');
         
-        response = await this.makeRequest('POST', `${config.baseURL}/messages`, JSON.stringify({
+        response = await this.makeRequest('POST', `${effectiveBaseURL}/messages`, JSON.stringify({
           model: modelId,
           messages: anthropicMessages,
           system: systemMessage?.content,
@@ -575,7 +618,7 @@ export class AIService {
           parts: [{ text: m.content }],
         }));
         
-        response = await this.makeRequest('POST', `${config.baseURL}/models/${modelId}:generateContent?key=${encodeURIComponent(config.apiKey)}`, JSON.stringify({
+        response = await this.makeRequest('POST', `${effectiveBaseURL}/models/${modelId}:generateContent?key=${encodeURIComponent(config.apiKey)}`, JSON.stringify({
           contents,
           generationConfig: {
             temperature: config.temperature,
@@ -589,7 +632,7 @@ export class AIService {
         return { content };
       }
       else if (prov === 'azure-openai') {
-        const azureUrl = config.baseURL || '';
+        const azureUrl = effectiveBaseURL || '';
         response = await this.makeRequest('POST', `${azureUrl}/openai/deployments/${modelId}/chat/completions?api-version=2024-02-15-preview`, JSON.stringify({
           messages,
           temperature: config.temperature,
@@ -688,6 +731,154 @@ Respond ONLY with valid JSON array, no other text.`;
     }
 
     return [];
+  }
+
+  async planSteps(command: string, context: any): Promise<any> {
+    const skillsDescription = this.getSkillsDescription();
+    
+    const prompt = `You are an AI agent that plans steps to complete user requests in a web browser.
+    
+Available skills:
+${skillsDescription}
+
+Plan the steps in JSON format:
+{
+  "steps": [
+    {
+      "id": "step_1",
+      "skill": "skill_id",
+      "input": { /* skill inputs */ },
+      "description": "What this step does",
+      "expectedOutput": "What the output should look like"
+    }
+  ],
+  "finalGoal": "What the user wants to achieve"
+}
+
+User request: "${command}"
+
+Respond ONLY with valid JSON, no other text.`;
+
+    const result = await this.chat([{ role: 'user', content: prompt }]);
+    
+    if (result.content) {
+      try {
+        const parsed = JSON.parse(result.content);
+        return parsed;
+      } catch (err) {
+        log.error('[AI] Failed to parse plan response:', result.content);
+        throw new Error('AI returned invalid plan format');
+      }
+    }
+    
+    throw new Error('AI failed to generate plan');
+  }
+
+  async evaluateStep(data: any): Promise<any> {
+    const { stepResult, step, remainingSteps, finalGoal } = data;
+    
+    const prompt = `Evaluate if the agent is on track after executing a step.
+
+Step executed: ${step.description}
+Step result: ${JSON.stringify(stepResult)}
+Remaining steps: ${remainingSteps.length}
+Final goal: "${finalGoal}"
+
+Should the agent replan? Respond with JSON:
+{
+  "needsReplan": boolean,
+  "reason": string (if needsReplan is true)
+}
+
+Respond ONLY with valid JSON, no other text.`;
+
+    const result = await this.chat([{ role: 'user', content: prompt }]);
+    
+    if (result.content) {
+      try {
+        return JSON.parse(result.content);
+      } catch {
+        return { needsReplan: false };
+      }
+    }
+    
+    return { needsReplan: false };
+  }
+
+  async replan(data: any): Promise<any> {
+    const { previousPlan, currentStep, stepResult, userCommand } = data;
+    
+    const prompt = `Replan based on current state.
+
+Previous plan: ${JSON.stringify(previousPlan, null, 2)}
+Current step index: ${currentStep}
+Step result: ${JSON.stringify(stepResult)}
+User command: "${userCommand}"
+
+Create a new plan from the current state. Respond with JSON:
+{
+  "steps": [...],
+  "finalGoal": "..."
+}
+
+Respond ONLY with valid JSON, no other text.`;
+
+    const result = await this.chat([{ role: 'user', content: prompt }]);
+    
+    if (result.content) {
+      try {
+        return JSON.parse(result.content);
+      } catch {
+        throw new Error('AI returned invalid replan format');
+      }
+    }
+    
+    throw new Error('AI failed to replan');
+  }
+
+  private getSkillsDescription(): string {
+    // Get skills from SkillRegistry
+    try {
+      const { getSkillRegistry } = require('./SkillRegistry');
+      const skillRegistry = getSkillRegistry();
+      return skillRegistry.getSkillsDescription();
+    } catch (err) {
+      // Fallback if SkillRegistry is not available
+      log.warn('[AIService] Could not get skills from SkillRegistry, using fallback');
+      return `
+1. navigate: Navigate to a URL
+   Input: { url: string }
+   Output: { success: boolean, url: string, title: string }
+
+2. click: Click on an element
+   Input: { selector: string, timeout?: number }
+   Output: { success: boolean, clicked: boolean, elementFound: boolean }
+
+3. type: Type text into an input
+   Input: { selector: string, text: string, clearFirst?: boolean }
+   Output: { success: boolean, typed: boolean }
+
+4. extract: Extract data from page
+   Input: { selector: string, attribute?: string }
+   Output: { success: boolean, data: string[] }
+
+5. scroll: Scroll the page
+   Input: { direction?: string, amount?: number }
+   Output: { success: boolean, scrolled: boolean }
+
+6. wait: Wait for condition or duration
+   Input: { duration?: number, selector?: string, timeout?: number }
+   Output: { success: boolean, waited: boolean }
+
+7. fillForm: Fill multiple form fields
+   Input: { fields: Array<{ selector: string, value: string }> }
+   Output: { success: boolean, filled: number }
+
+8. screenshot: Take a screenshot
+   Input: { fullPage?: boolean }
+   Output: { success: boolean, imageData: string }
+`;
+    }
   }
 
   private makeRequest(method: string, url: string, data: string, headers: Record<string, string> = {}): Promise<any> {
