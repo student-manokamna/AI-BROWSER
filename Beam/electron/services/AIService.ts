@@ -694,7 +694,11 @@ Respond ONLY with valid JSON, no other text.`;
 
     if (result.content) {
       try {
-        const parsed = JSON.parse(result.content);
+        let jsonStr = result.content.trim();
+        if (jsonStr.startsWith('```')) {
+          jsonStr = jsonStr.replace(/^```json?\n?/, '').replace(/\n?```$/, '');
+        }
+        const parsed = JSON.parse(jsonStr);
         return parsed;
       } catch (parseErr) {
         log.warn('[AI] Failed to parse AI response:', result.content);
@@ -723,7 +727,11 @@ Respond ONLY with valid JSON array, no other text.`;
 
     if (result.content) {
       try {
-        const suggestions = JSON.parse(result.content);
+        let jsonStr = result.content.trim();
+        if (jsonStr.startsWith('```')) {
+          jsonStr = jsonStr.replace(/^```json?\n?/, '').replace(/\n?```$/, '');
+        }
+        const suggestions = JSON.parse(jsonStr);
         return Array.isArray(suggestions) ? suggestions : [];
       } catch {
         return [];
@@ -763,7 +771,12 @@ Respond ONLY with valid JSON, no other text.`;
     
     if (result.content) {
       try {
-        const parsed = JSON.parse(result.content);
+        let jsonStr = result.content.trim();
+        // Remove markdown code fences (```json or ```)
+        if (jsonStr.startsWith('```')) {
+          jsonStr = jsonStr.replace(/^```json?\n?/, '').replace(/\n?```$/, '');
+        }
+        const parsed = JSON.parse(jsonStr);
         return parsed;
       } catch (err) {
         log.error('[AI] Failed to parse plan response:', result.content);
@@ -796,7 +809,11 @@ Respond ONLY with valid JSON, no other text.`;
     
     if (result.content) {
       try {
-        return JSON.parse(result.content);
+        let jsonStr = result.content.trim();
+        if (jsonStr.startsWith('```')) {
+          jsonStr = jsonStr.replace(/^```json?\n?/, '').replace(/\n?```$/, '');
+        }
+        return JSON.parse(jsonStr);
       } catch {
         return { needsReplan: false };
       }
@@ -827,7 +844,11 @@ Respond ONLY with valid JSON, no other text.`;
     
     if (result.content) {
       try {
-        return JSON.parse(result.content);
+        let jsonStr = result.content.trim();
+        if (jsonStr.startsWith('```')) {
+          jsonStr = jsonStr.replace(/^```json?\n?/, '').replace(/\n?```$/, '');
+        }
+        return JSON.parse(jsonStr);
       } catch {
         throw new Error('AI returned invalid replan format');
       }

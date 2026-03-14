@@ -41,7 +41,25 @@ export class SkillRegistry {
         fs.mkdirSync(this.dataDir, { recursive: true });
       }
       this.skillsFile = path.join(this.dataDir, 'skills.json');
-      this.defaultSkillsFile = path.join(__dirname, 'default-skills.json');
+      
+      // Try multiple paths for default-skills.json (dev vs production)
+      const possiblePaths = [
+        path.join(__dirname, 'default-skills.json'),
+        path.join(__dirname, '..', '..', 'electron', 'services', 'default-skills.json'),
+        path.join(process.cwd(), 'electron', 'services', 'default-skills.json'),
+      ];
+      
+      for (const p of possiblePaths) {
+        if (fs.existsSync(p)) {
+          this.defaultSkillsFile = p;
+          console.log('[SkillRegistry] Found default-skills.json at:', p);
+          break;
+        }
+      }
+      
+      if (!this.defaultSkillsFile) {
+        console.warn('[SkillRegistry] default-skills.json not found in any location');
+      }
     } catch (err) {
       console.error('[SkillRegistry] Init failed:', err);
     }

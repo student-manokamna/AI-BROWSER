@@ -478,6 +478,61 @@ export function AgentPanel() {
           // Pause execution here - for now we just break and log
           addLog('Waiting for user input...');
           break;
+        } else if (stepResult.result?.skill === 'navigate' || stepResult.result?.skill === 'browse') {
+          // Handle navigation skills - actually navigate the browser
+          const url = stepResult.result.params?.url;
+          if (url) {
+            addLog(`Navigating to: ${url}`);
+            await window.electronAPI.navigate(activeTabId, url);
+          }
+        } else if (stepResult.result?.skill === 'go_back') {
+          addLog('Going back...');
+          await window.electronAPI.goBack(activeTabId);
+        } else if (stepResult.result?.skill === 'go_forward') {
+          addLog('Going forward...');
+          await window.electronAPI.goForward(activeTabId);
+        } else if (stepResult.result?.skill === 'reload') {
+          addLog('Reloading page...');
+          await window.electronAPI.reload(activeTabId);
+        } else if (stepResult.result?.skill === 'open_new_tab') {
+          const url = stepResult.result.params?.url || 'about:blank';
+          addLog(`Opening new tab: ${url}`);
+          await window.electronAPI.createTab('', url);
+        } else if (stepResult.result?.skill === 'close_tab') {
+          addLog('Closing current tab...');
+          await window.electronAPI.closeTab(activeTabId);
+        } else if (stepResult.result?.skill === 'switch_to_tab') {
+          const tabIndex = stepResult.result.params?.index;
+          addLog(`Switching to tab ${tabIndex}...`);
+          // This would need more logic to get tab by index
+          addLog('Switch to specific tab not fully implemented');
+        } else if (stepResult.result?.skill === 'screenshot') {
+          addLog('Taking screenshot...');
+          const screenshot = await window.electronAPI.agentCaptureScreenshot();
+          if (screenshot) {
+            addLog(`Screenshot captured (${screenshot.length} chars)`);
+          }
+        } else if (stepResult.result?.skill === 'extract_text' || stepResult.result?.skill === 'read_webpage') {
+          addLog('Extracting page content...');
+          const content = await window.electronAPI.agentExecuteScript(activeTabId, `
+            document.body.innerText.substring(0, 5000)
+          `);
+          addLog(`Extracted ${content?.length || 0} characters`);
+        } else if (stepResult.result?.skill === 'scroll') {
+          const direction = stepResult.result.params?.direction || 'down';
+          const amount = stepResult.result.params?.amount || 500;
+          addLog(`Scrolling ${direction}...`);
+          await window.electronAPI.agentExecuteScript(activeTabId, `
+            window.scrollBy(0, ${direction === 'down' ? amount : -amount});
+          `);
+        } else if (stepResult.result?.skill === 'click' || stepResult.result?.skill === 'type' || stepResult.result?.skill === 'fill_form') {
+          // These skills need browser automation - for now just log
+          addLog(`Skill ${stepResult.result.skill} requires browser automation (not yet fully implemented)`);
+        } else if (stepResult.result?.action === 'display_result') {
+          // Display result in agent panel
+          const content = stepResult.result.content;
+          const type = stepResult.result.type || 'text';
+          addLog(`Result: ${content.substring(0, 200)}${content.length > 200 ? '...' : ''}`);
         }
         
         if (!stepResult.success) {

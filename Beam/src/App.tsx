@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { TitleBar } from './components/TitleBar/TitleBar';
 import { TabBar } from './components/TabBar/TabBar';
 import { NavigationBar } from './components/NavigationBar/NavigationBar';
@@ -26,8 +26,9 @@ function App() {
   const showAgentPanel = useBrowserStore(s => s.showAgentPanel);
   const setAgentPanel = useBrowserStore(s => s.setAgentPanel);
   const [panelPosition, setPanelPosition] = useState({ x: 20, y: 0 });
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const isDragging = useRef(false);
+  const dragStartPos = useRef({ x: 0, y: 0 });
+  const panelStartPos = useRef({ x: 0, y: 0 });
 
   // Set initial position to center vertically when panel opens
   useEffect(() => {
@@ -36,6 +37,49 @@ function App() {
       setPanelPosition({ x: 20, y: centerY });
     }
   }, [showAgentPanel]);
+
+  // Inject theme CSS into all webviews when theme changes
+  useEffect(() => {
+    const injectThemeCSS = () => {
+      const webviews = document.querySelectorAll('webview');
+      
+      // Use CSS that respects websites' own dark mode support via prefers-color-scheme
+      // and also force a dark background for websites without dark mode
+      const darkThemeCSS = `
+        @media (prefers-color-scheme: light) {
+          html {
+            background: #1a1a1a !important;
+          }
+        }
+        html {
+          background: #1a1a1a !important;
+        }
+      `;
+      
+      const lightThemeCSS = `
+        @media (prefers-color-scheme: dark) {
+          html {
+            background: #ffffff !important;
+          }
+        }
+        html {
+          background: #ffffff !important;
+        }
+      `;
+      
+      const css = theme === 'dark' ? darkThemeCSS : lightThemeCSS;
+      
+      webviews.forEach((webview: any) => {
+        try {
+          webview.insertCSS(css);
+        } catch (e) {
+          // Ignore errors
+        }
+      });
+    };
+    
+    injectThemeCSS();
+  }, [theme]);
 
   // Restore browser session on startup
   useEffect(() => {
@@ -91,37 +135,36 @@ function App() {
     return () => cleanup?.();
   }, [setMaximized]);
 
-  const handleDragStart = (e: React.MouseEvent) => {
+  const handleDragStart = useCallback((e: React.MouseEvent) => {
     if ((e.target as HTMLElement).closest('.agent-panel__content')) return;
-    setIsDragging(true);
-    setDragOffset({
-      x: e.clientX - panelPosition.x,
-      y: e.clientY - panelPosition.y
-    });
-  };
+    isDragging.current = true;
+    dragStartPos.current = { x: e.clientX, y: e.clientY };
+    panelStartPos.current = { x: panelPosition.x, y: panelPosition.y };
+    e.preventDefault();
+  }, [panelPosition]);
 
-  const handleDrag = (e: MouseEvent) => {
-    if (!isDragging) return;
+  const handleDrag = useCallback((e: MouseEvent) => {
+    if (!isDragging.current) return;
+    const deltaX = e.clientX - dragStartPos.current.x;
+    const deltaY = e.clientY - dragStartPos.current.y;
     setPanelPosition({
-      x: Math.max(0, Math.min(e.clientX - dragOffset.x, window.innerWidth - 400)),
-      y: Math.max(0, Math.min(e.clientY - dragOffset.y, window.innerHeight - 600))
+      x: panelStartPos.current.x + deltaX,
+      y: panelStartPos.current.y + deltaY
     });
-  };
+  }, []);
 
-  const handleDragEnd = () => {
-    setIsDragging(false);
-  };
+  const handleDragEnd = useCallback(() => {
+    isDragging.current = false;
+  }, []);
 
   useEffect(() => {
-    if (isDragging) {
-      document.addEventListener('mousemove', handleDrag);
-      document.addEventListener('mouseup', handleDragEnd);
-    }
+    document.addEventListener('mousemove', handleDrag);
+    document.addEventListener('mouseup', handleDragEnd);
     return () => {
       document.removeEventListener('mousemove', handleDrag);
       document.removeEventListener('mouseup', handleDragEnd);
     };
-  }, [isDragging, dragOffset]);
+  }, [handleDrag, handleDragEnd]);
 
   return (
     <div className="app-container">
@@ -139,8 +182,10 @@ function App() {
             left: panelPosition.x,
             transform: 'none'
           }}
-          onMouseDown={handleDragStart}
         >
+          <div className="agent-panel-overlay__drag-handle" onMouseDown={handleDragStart}>
+            <span className="drag-handle-dots">⋮⋮</span>
+          </div>
           <button 
             className="agent-panel-overlay__close"
             onClick={(e) => {

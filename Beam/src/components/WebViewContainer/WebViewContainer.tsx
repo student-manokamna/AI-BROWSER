@@ -39,7 +39,7 @@ const WebView = memo(function WebView({ tabId, initialUrl, isActive, onRegister 
       className={`webview-container__view ${isActive ? 'webview-container__view--active' : ''}`}
       partition="persist:beam"
       allowpopups={true}
-      webpreferences="contextIsolation=yes"
+      webpreferences="contextIsolation=yes,darkTheme=yes"
     />
   );
 }, (prevProps, nextProps) => {

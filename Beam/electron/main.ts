@@ -717,8 +717,13 @@ ipcMain.handle('activity-log', async (_event, message: string) => {
 
 // ─── Navigation ─────────────────────────────────────────────────────────────
 
-ipcMain.handle('navigate', async (_event, _tabId: string, _url: string) => {
-  // Navigation handled via webview in renderer
+ipcMain.handle('navigate', async (_event, tabId: string, url: string) => {
+  // Navigation handled via webview in renderer - send agent-navigate-webview event
+  const mainWindow = BrowserWindow.getFocusedWindow();
+  if (mainWindow) {
+    mainWindow.webContents.send('agent-navigate-webview', { url, tabId });
+  }
+  return { success: true };
 });
 
 ipcMain.handle('go-back', async () => {

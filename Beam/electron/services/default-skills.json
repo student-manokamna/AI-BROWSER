@@ -467,8 +467,7 @@
       "required": ["problem"]
     },
     "outputSchema": { "type": "object", "properties": { "success": { "type": "boolean" } } }
-  }
-]
+  },
   {
     "id": "navigate",
     "name": "Navigate",
